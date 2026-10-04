@@ -1,0 +1,19 @@
+# Dependencies & build output
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+
+# Secrets (example files are committed)
+.env
+.env.*
+!.env.example
+!.env.demo
+!example.env
+
+# OS / editors
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea

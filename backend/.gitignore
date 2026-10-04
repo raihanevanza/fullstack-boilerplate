@@ -1,0 +1,29 @@
+# Local configuration (copy example.env to .env)
+.env
+.env.*
+!example.env
+
+# Build output
+tmp/
+bin/
+/server
+/backend
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries and coverage
+*.test
+*.out
+coverage.*
+
+# Go workspace
+go.work
+go.work.sum
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

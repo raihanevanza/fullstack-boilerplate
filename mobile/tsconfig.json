@@ -1,0 +1,11 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": ["**/node_modules", "**/Pods", "android", "ios"],
+  "include": ["**/*.ts", "**/*.tsx"]
+}

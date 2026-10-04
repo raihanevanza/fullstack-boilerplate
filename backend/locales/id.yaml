@@ -1,0 +1,56 @@
+# Bahasa Indonesia.
+# Error codes: <code>.title and <code>.message. Keep keys in sync with en.yaml
+# (pkg/i18n has a test that fails when the two files differ).
+
+bad_request:
+  title: Permintaan tidak valid
+  message: Permintaan tidak valid.
+err_invalid_credential:
+  title: Login gagal
+  message: Email atau kata sandi salah.
+err_unauthorized:
+  title: Tidak terautentikasi
+  message: Sesi Anda tidak ada atau sudah berakhir. Silakan login kembali.
+err_forbidden:
+  title: Akses ditolak
+  message: Anda tidak memiliki izin untuk melakukan aksi ini.
+err_user_inactive:
+  title: Akun dinonaktifkan
+  message: Akun Anda sudah dinonaktifkan. Silakan hubungi administrator.
+err_not_found:
+  title: Data tidak ditemukan
+  message: Data yang Anda cari tidak ada.
+err_duplicate:
+  title: Data duplikat
+  message: Data dengan nilai unik yang sama sudah ada.
+err_service_unavailable:
+  title: Layanan tidak tersedia
+  message: Layanan tidak dapat terhubung ke database saat ini.
+internal_server_error:
+  title: Kesalahan server
+  message: Terjadi kesalahan di sisi kami. Silakan coba lagi nanti.
+
+# Dynamic messages used with apperr.Error.WithMessage
+msg:
+  duplicate_sku: "SKU {{.Sku}} sudah dipakai produk lain."
+  route_not_found: "Rute {{.Method}} {{.Path}} tidak ada."
+
+# Validation messages (pkg/model/request/validate.go)
+validation:
+  malformed_body: Body permintaan bukan JSON yang valid.
+  malformed_query: Query string berisi nilai dengan tipe yang salah.
+  invalid_id: ID pada URL harus berupa bilangan bulat positif.
+  required: "{{.Field}} wajib diisi."
+  email: "{{.Field}} harus berupa alamat email yang valid."
+  gt: "{{.Field}} harus lebih besar dari {{.Param}}."
+  gte: "{{.Field}} harus lebih besar dari atau sama dengan {{.Param}}."
+  lt: "{{.Field}} harus lebih kecil dari {{.Param}}."
+  lte: "{{.Field}} harus lebih kecil dari atau sama dengan {{.Param}}."
+  min: "{{.Field}} minimal {{.Param}}."
+  max: "{{.Field}} maksimal {{.Param}}."
+  min_string: "{{.Field}} minimal {{.Param}} karakter."
+  max_string: "{{.Field}} maksimal {{.Param}} karakter."
+  min_slice: "{{.Field}} minimal berisi {{.Param}} item."
+  max_slice: "{{.Field}} maksimal berisi {{.Param}} item."
+  type: "Tipe data {{.Field}} tidak sesuai."
+  invalid: "{{.Field}} tidak valid."

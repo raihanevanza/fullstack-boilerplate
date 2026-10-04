@@ -1,0 +1,56 @@
+# English (default language).
+# Error codes: <code>.title and <code>.message. Keep keys in sync with id.yaml
+# (pkg/i18n has a test that fails when the two files differ).
+
+bad_request:
+  title: Bad request
+  message: The request is invalid.
+err_invalid_credential:
+  title: Login failed
+  message: The email or password is incorrect.
+err_unauthorized:
+  title: Unauthorized
+  message: Your session is missing or has expired. Please log in again.
+err_forbidden:
+  title: Access denied
+  message: You do not have permission to perform this action.
+err_user_inactive:
+  title: Account disabled
+  message: Your account has been disabled. Please contact an administrator.
+err_not_found:
+  title: Not found
+  message: The data you are looking for does not exist.
+err_duplicate:
+  title: Duplicate data
+  message: A record with the same unique value already exists.
+err_service_unavailable:
+  title: Service unavailable
+  message: The service cannot reach its database right now.
+internal_server_error:
+  title: Internal server error
+  message: Something went wrong on our side. Please try again later.
+
+# Dynamic messages used with apperr.Error.WithMessage
+msg:
+  duplicate_sku: "SKU {{.Sku}} is already used by another product."
+  route_not_found: "Route {{.Method}} {{.Path}} does not exist."
+
+# Validation messages (pkg/model/request/validate.go)
+validation:
+  malformed_body: The request body is not valid JSON.
+  malformed_query: The query string contains a value of the wrong type.
+  invalid_id: The ID in the URL must be a positive integer.
+  required: "{{.Field}} is required."
+  email: "{{.Field}} must be a valid email address."
+  gt: "{{.Field}} must be greater than {{.Param}}."
+  gte: "{{.Field}} must be greater than or equal to {{.Param}}."
+  lt: "{{.Field}} must be less than {{.Param}}."
+  lte: "{{.Field}} must be less than or equal to {{.Param}}."
+  min: "{{.Field}} must be at least {{.Param}}."
+  max: "{{.Field}} must be at most {{.Param}}."
+  min_string: "{{.Field}} must be at least {{.Param}} characters long."
+  max_string: "{{.Field}} must be at most {{.Param}} characters long."
+  min_slice: "{{.Field}} must contain at least {{.Param}} item(s)."
+  max_slice: "{{.Field}} must contain at most {{.Param}} item(s)."
+  type: "{{.Field}} has the wrong type."
+  invalid: "{{.Field}} is invalid."

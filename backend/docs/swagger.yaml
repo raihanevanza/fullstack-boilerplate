@@ -1,0 +1,540 @@
+basePath: /
+definitions:
+  request.LoginRequest:
+    properties:
+      email:
+        example: admin@example.com
+        maxLength: 150
+        type: string
+      password:
+        example: Password123!
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.ProductRequest:
+    properties:
+      description:
+        example: 2.4 GHz, silent click
+        maxLength: 500
+        type: string
+      is_active:
+        description: Defaults to true on create. On update, omitting it keeps the
+          current value.
+        example: true
+        type: boolean
+      name:
+        example: Wireless Mouse
+        maxLength: 200
+        type: string
+      price:
+        example: 99000
+        maximum: 1000000000000
+        minimum: 0
+        type: number
+      sku:
+        example: PRD-0001
+        maxLength: 50
+        type: string
+      stock:
+        example: 25
+        maximum: 2147483647
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - price
+    - sku
+    - stock
+    type: object
+  response.DashboardResponse:
+    properties:
+      active_products:
+        example: 10
+        type: integer
+      inactive_products:
+        example: 2
+        type: integer
+      inventory_value:
+        description: Sum of price * stock over active products.
+        example: 15250000
+        type: number
+      low_stock_products:
+        description: Active products with stock <= LOW_STOCK_THRESHOLD (10).
+        example: 3
+        type: integer
+      recent_products:
+        description: Up to 5 products, newest first.
+        items:
+          $ref: '#/definitions/response.ProductResponse'
+        type: array
+      total_products:
+        example: 12
+        type: integer
+    type: object
+  response.Error:
+    properties:
+      error_code:
+        example: err_not_found
+        type: string
+      message:
+        example: The data you are looking for does not exist.
+        type: string
+      title:
+        example: Not found
+        type: string
+    type: object
+  response.LoginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_at:
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+      user:
+        $ref: '#/definitions/response.UserResponse'
+    type: object
+  response.PaginatedData-response_ProductResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.ProductResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.Pagination'
+    type: object
+  response.Pagination:
+    properties:
+      count:
+        description: Total number of matching rows (not the page size).
+        example: 42
+        type: integer
+      limit:
+        example: 20
+        type: integer
+      page:
+        example: 1
+        type: integer
+    type: object
+  response.PingResponse:
+    properties:
+      current_date:
+        type: string
+      message:
+        example: pong
+        type: string
+      status:
+        example: ok
+        type: string
+    type: object
+  response.ProductResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        example: 2.4 GHz, silent click
+        type: string
+      id:
+        example: 1
+        type: integer
+      is_active:
+        example: true
+        type: boolean
+      name:
+        example: Wireless Mouse
+        type: string
+      price:
+        example: 99000
+        type: number
+      sku:
+        example: PRD-0001
+        type: string
+      stock:
+        example: 25
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/response.Error'
+      message:
+        example: success
+        type: string
+    type: object
+  response.UserResponse:
+    properties:
+      email:
+        example: admin@example.com
+        type: string
+      full_name:
+        example: Admin User
+        type: string
+      id:
+        example: 1
+        type: integer
+      last_login_at:
+        type: string
+      permissions:
+        example:
+        - product.write
+        items:
+          type: string
+        type: array
+      role:
+        example: ADMIN
+        type: string
+      role_name:
+        example: Administrator
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 'Example REST API: JWT auth, role permissions, dashboard and product
+    CRUD. Envelope: {error, message, data}.'
+  title: Fullstack Boilerplate API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Exchanges email and password for a JWT access token.
+      operationId: post-auth-login
+      parameters:
+      - description: en (default) or id
+        in: header
+        name: Accept-Language
+        type: string
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: err_invalid_credential
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: err_user_inactive
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Log in
+      tags:
+      - auth
+  /api/auth/me:
+    get:
+      description: Returns the logged-in user and the permissions of their role.
+      operationId: get-auth-me
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.UserResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Current user
+      tags:
+      - auth
+  /api/dashboard:
+    get:
+      description: Product counters, inventory value (sum of price * stock over active
+        products) and the 5 newest products.
+      operationId: get-dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DashboardResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Dashboard summary
+      tags:
+      - dashboard
+  /api/products:
+    get:
+      description: Newest first. search matches SKU or name.
+      operationId: get-products
+      parameters:
+      - description: Page (default 1)
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - description: Page size (default 20, max 100)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Matches SKU or name (max 100 chars)
+        in: query
+        maxLength: 100
+        name: search
+        type: string
+      - description: Only active products
+        in: query
+        name: active_only
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PaginatedData-response_ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List products
+      tags:
+      - product
+    post:
+      consumes:
+      - application/json
+      description: Requires the product.write permission. Writes an audit log in the
+        same transaction.
+      operationId: post-product
+      parameters:
+      - description: Product
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: err_duplicate (SKU already used)
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a product
+      tags:
+      - product
+  /api/products/{id}:
+    delete:
+      description: Requires the product.write permission. data is null on success.
+      operationId: delete-product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a product (soft delete)
+      tags:
+      - product
+    get:
+      operationId: get-product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get a product
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Requires the product.write permission. Omitting is_active keeps
+        the current value.
+      operationId: put-product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/request.ProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ProductResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a product
+      tags:
+      - product
+  /health:
+    get:
+      description: Pings the database. Returns 503 err_service_unavailable when the
+        database is unreachable.
+      operationId: get-health
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.PingResponse'
+              type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Health check
+      tags:
+      - health
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: 'Value: "Bearer {access_token}". Get the token from POST /api/auth/login.'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
