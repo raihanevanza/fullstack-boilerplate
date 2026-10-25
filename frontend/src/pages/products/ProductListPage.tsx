@@ -1,46 +1,40 @@
+import { Button, Checkbox, IconButton, PageHeader, useToast } from '@rupa-ui/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { errorMessage } from '@/api/baseApi';
 import { useDeleteProductMutation, useProductsQuery } from '@/api/products';
 import type { Product } from '@/api/types';
-import ConfirmDialog from '@/components/ConfirmDialog';
 import ListToolbar from '@/components/ListToolbar';
-import PageHeader from '@/components/PageHeader';
-import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 import Pagination from '@/components/ui/Pagination';
 import { usePermission } from '@/features/auth/usePermission';
 import { useT } from '@/i18n/useT';
-import { useNotify } from '@/lib/notify';
 import { useListParams } from '@/lib/useListParams';
 import ProductDetailModal from './ProductDetailModal';
 import ProductFormModal from './ProductFormModal';
 import ProductTable from './ProductTable';
 
-const iconButton =
-  'grid h-8 w-8 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-surface-3 hover:text-ink';
-
 export default function ProductListPage() {
   const { t } = useT();
   const canWrite = usePermission('product.write');
-  const notify = useNotify();
+  const toast = useToast();
   const { params, search, filters, set } = useListParams(['active_only']);
   const { data, isFetching, error } = useProductsQuery(params);
-  const [remove, { isLoading: removing }] = useDeleteProductMutation();
+  const [remove] = useDeleteProductMutation();
 
   // undefined = closed, null = create, Product = edit
   const [editing, setEditing] = useState<Product | null | undefined>(undefined);
   const [viewing, setViewing] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
 
-  const confirmDelete = async () => {
-    if (!deleting) return;
-    const res = await notify(remove(deleting.id), t('products.deleted'));
-    if (res.ok) {
-      setDeleting(null);
-      // Deleting the last row of a page: step back so the page is not empty
-      if (data && data.data.length === 1 && params.page && params.page > 1) {
-        set('page', params.page - 1);
-      }
+  // Throwing keeps the dialog open with the error; resolving closes it
+  const confirmDelete = async (product: Product) => {
+    const res = await remove(product.id);
+    if ('error' in res) throw new Error(errorMessage(res.error));
+    toast.show({ tone: 'success', title: t('products.deleted') });
+    // Deleting the last row of a page: step back so the page is not empty
+    if (data && data.data.length === 1 && params.page && params.page > 1) {
+      set('page', params.page - 1);
     }
   };
 
@@ -48,11 +42,16 @@ export default function ProductListPage() {
     <>
       <PageHeader
         title={t('products.title')}
-        subtitle={canWrite ? t('products.subtitle') : t('products.readOnly')}
+        description={canWrite ? t('products.subtitle') : t('products.readOnly')}
+        className="mb-6"
         actions={
           canWrite && (
-            <Button onClick={() => setEditing(null)}>
-              <Plus size={16} /> {t('products.add')}
+            <Button
+              variant="primary"
+              iconStart={<Plus size={16} />}
+              onClick={() => setEditing(null)}
+            >
+              {t('products.add')}
             </Button>
           )
         }
@@ -63,53 +62,41 @@ export default function ProductListPage() {
         onSearch={(v) => set('search', v)}
         placeholder={t('products.search')}
       >
-        <label className="flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-surface px-3.5 text-sm text-ink-2 shadow-sm hover:bg-surface-2">
-          <input
-            type="checkbox"
-            className="h-4 w-4 accent-[rgb(var(--primary))]"
-            checked={filters.active_only === 'true'}
-            onChange={(e) => set('active_only', e.target.checked)}
-          />
-          {t('products.activeOnly')}
-        </label>
+        <Checkbox
+          label={t('products.activeOnly')}
+          checked={filters.active_only === 'true'}
+          onChange={(e) => set('active_only', e.target.checked)}
+        />
       </ListToolbar>
 
       <div className={isFetching && data ? 'opacity-70 transition-opacity' : undefined}>
         <ProductTable
           rows={data?.data}
+          caption={t('products.title')}
           loading={isFetching}
           error={error ? errorMessage(error) : null}
           actions={(p) => (
             <span className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                className={iconButton}
+              <IconButton
+                size="sm"
+                icon={<Eye size={16} />}
+                label={`${t('common.view')} ${p.sku}`}
                 onClick={() => setViewing(p.id)}
-                aria-label={`${t('common.view')} ${p.sku}`}
-                title={t('common.view')}
-              >
-                <Eye size={16} />
-              </button>
+              />
               {canWrite && (
                 <>
-                  <button
-                    type="button"
-                    className={iconButton}
+                  <IconButton
+                    size="sm"
+                    icon={<Pencil size={16} />}
+                    label={`${t('common.edit')} ${p.sku}`}
                     onClick={() => setEditing(p)}
-                    aria-label={`${t('common.edit')} ${p.sku}`}
-                    title={t('common.edit')}
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    className={`${iconButton} hover:text-danger hover:bg-rose-50 dark:hover:bg-rose-400/10`}
+                  />
+                  <IconButton
+                    size="sm"
+                    icon={<Trash2 size={16} />}
+                    label={`${t('common.delete')} ${p.sku}`}
                     onClick={() => setDeleting(p)}
-                    aria-label={`${t('common.delete')} ${p.sku}`}
-                    title={t('common.delete')}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  />
                 </>
               )}
             </span>
@@ -132,14 +119,12 @@ export default function ProductListPage() {
       {viewing !== null && <ProductDetailModal id={viewing} onClose={() => setViewing(null)} />}
       {deleting && (
         <ConfirmDialog
-          open
           danger
           title={t('products.deleteTitle')}
           description={t('products.deleteConfirm', { name: deleting.name, sku: deleting.sku })}
           confirmLabel={t('common.delete')}
-          loading={removing}
           onClose={() => setDeleting(null)}
-          onConfirm={confirmDelete}
+          onConfirm={() => confirmDelete(deleting)}
         />
       )}
     </>

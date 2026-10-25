@@ -72,7 +72,7 @@ export default function DonutChart({
               cy={cy}
               r={(r0 + r1) / 2}
               fill="none"
-              stroke="var(--chart-grid)"
+              stroke="var(--rupa-color-chart-grid)"
               strokeWidth={r1 - r0}
             />
           ) : (
@@ -81,7 +81,7 @@ export default function DonutChart({
                 key={a.label}
                 d={arcPath(cx, cy, r0, r1, a.a0, a.a1)}
                 fill={a.color}
-                stroke="rgb(var(--surface))"
+                stroke="var(--rupa-color-surface)"
                 strokeWidth={2}
                 opacity={active !== null && active !== i ? 0.4 : 1}
                 style={{ transition: 'opacity 120ms' }}

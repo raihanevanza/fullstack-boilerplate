@@ -6,7 +6,7 @@ export default function Logo({ compact = false }: { compact?: boolean }) {
   const { t } = useT();
   return (
     <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#8468E8] to-[#5835BE] shadow-card">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary-hover to-primary text-on-primary shadow-card">
         <LogoMark />
       </span>
       {!compact && (

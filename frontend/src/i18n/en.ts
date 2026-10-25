@@ -26,11 +26,17 @@ export const en: Record<TKey, string> = {
   'common.language': 'Language',
   'common.retry': 'Retry',
   'common.reason': 'Reason',
+  'common.required': 'required',
+  'common.notifications': 'Notifications',
+  'common.showTable': 'Show as table',
 
   'pagination.showing': 'Showing',
   'pagination.of': 'of',
   'pagination.prev': 'Previous page',
   'pagination.next': 'Next page',
+  'pagination.nav': 'Pagination',
+  'pagination.page': 'Page {page}',
+  'pagination.status': 'Page {page} of {count}',
 
   'app.tagline': 'Fullstack starter',
   'nav.overview': 'Overview',

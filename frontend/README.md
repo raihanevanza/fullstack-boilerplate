@@ -3,7 +3,8 @@
 React web client for the boilerplate: login, dashboard and a complete products CRUD module, built against the shared API contract in [`../docs/API.md`](../docs/API.md).
 
 - **React 18 + Vite 5 + TypeScript 5.5** (strict)
-- **Tailwind CSS 3** with semantic color tokens, dark mode and the Plus Jakarta Sans font
+- **[Rupa](https://github.com/raihanevanza/rupa) design system** (`@rupa-ui/react` + `@rupa-ui/tokens`, violet brand): accessible components (Button, TextField, Dialog, ConfirmDialog, Table, Pagination, Toast, …), light/dark mode and the Plus Jakarta Sans font
+- **Tailwind CSS 3** for layout, with the Rupa token preset (`bg-surface`, `text-ink-2`, …)
 - **Redux Toolkit + RTK Query** on top of an axios base query (`Authorization` and `Accept-Language` headers, envelope unwrapping, error normalization, 401 → logout)
 - **react-hook-form + yup** for forms, with schemas rebuilt per language
 - **Hand-rolled i18n** (English default, Indonesian included), type-checked so a missing translation fails the build
@@ -63,26 +64,31 @@ src/
 ├── api/            RTK Query: baseApi.ts (axios base query, tags), one file per resource
 │                   (auth.ts, dashboard.ts, products.ts), client.ts (axios + interceptors), types.ts
 ├── app/            Redux store and typed hooks
-├── components/     App-level components (MainLayout, PageHeader, ListToolbar, ConfirmDialog, Toaster, …)
+├── components/     App-level components (MainLayout, ListToolbar, LanguageSwitch, DemoBadge, Logo, …)
 │   ├── charts/     Hand-built SVG charts (DonutChart)
-│   └── ui/         UI kit: Button, Card, Field/Input/Select/Textarea, Modal, Table, Pagination, CurrencyInput
+│   └── ui/         Thin wrappers that give Rupa components the app's translations (Dialog, ConfirmDialog,
+│                   Pagination) and CurrencyInput (a Rupa TextField for money)
 ├── demo/           In-browser mock API for demo mode (server.ts, seed.ts, store.ts, adapter.ts)
 ├── features/
 │   ├── auth/       authSlice, RequireAuth, usePermission / useCurrentUser
-│   └── ui/         uiSlice (sidebar, drawer, toasts, language), theme
+│   └── ui/         uiSlice (sidebar, drawer, language), theme (light/dark toggle)
 ├── i18n/           core.ts (translate), useT.ts (hook), id.ts (key source), en.ts
-├── lib/            config (env), format (Intl formatters), notify, useListParams, useDebounced, useMediaQuery
+├── lib/            config (env), format (Intl formatters), notify (mutation + toast), useListParams, useDebounced, useMediaQuery
 ├── pages/          LoginPage, DashboardPage, NotFoundPage, products/ (list, form, detail, schema)
 ├── routes/         React Router config
-├── index.css       Tailwind layers + design tokens (light/dark) + .tone-* classes
+├── styles/         preflight.css (Tailwind base, loaded before the Rupa styles)
+├── index.css       Tailwind components + utilities (loaded after the Rupa styles)
 └── main.tsx
 ```
 
 ### Conventions
 
 - **Imports** use the `@/` alias for `src/`.
-- **Colors** always come from the semantic tokens in `tailwind.config.js` / `src/index.css` (`bg-surface`, `text-ink-2`, `bg-primary`, `text-accent`, `border-line`, …), so dark mode works without `dark:` variants. Status pills use the `.tone-*` classes. Chart series use `var(--series-1…5)`, which are validated for color-vision deficiency and contrast in both themes.
-- **Theme** is applied before first paint by the inline script in `index.html`; the user's choice is stored in `localStorage.theme`.
+- **UI** comes from `@rupa-ui/react` first ([Storybook](https://raihan-evanza-rupa.vercel.app) lists every component). Pass the translated text for built-in labels (`closeLabel`, `cancelLabel`, `requiredLabel`, `retryLabel`, …), or use the wrappers in `components/ui` that already do. Write your own markup only for app-specific layout.
+- **Colors** always come from the Rupa tokens, through the Tailwind preset (`bg-surface`, `text-ink-2`, `bg-primary`, `text-accent`, `border-line`, `bg-success-soft`, …) or `var(--rupa-color-*)`, so dark mode works without `dark:` variants. Chart series use `var(--rupa-color-series-1…5)`, validated for color-vision deficiency and contrast in every brand and mode.
+- **CSS order** is set in `main.tsx`: Tailwind preflight → Rupa styles → Tailwind utilities, so preflight never resets a Rupa component and a utility class can still adjust one.
+- **Brand and theme** are attributes on `<html>`: change `data-brand` in `index.html` to switch the whole palette (`violet`, `signal`, `latte`, `ledger`, `mono`). `data-theme` is set before first paint by the inline script in `index.html` (`system` until the user picks light or dark, stored in `localStorage.theme`).
+- **Toasts**: `useToast().show({ tone, title })` from Rupa, or `useNotify()` to run a mutation and toast the result.
 - **Permissions** come from `/api/auth/me` (`user.permissions`). Gate UI with `usePermission('product.write')`; never check role names.
 - **API errors** are normalized to `{ status, code, title, message }`. The backend translates `title`/`message` using the `Accept-Language` header, so show `message` as is (`errorMessage(error)`), and use `code` to decide _where_ (e.g. `err_duplicate` → the SKU field).
 - **List state** (page, search, filters) lives in the URL via `useListParams`, so lists can be linked and survive a refresh.
@@ -91,7 +97,7 @@ src/
 
 ### Add a page
 
-1. Create the component in `src/pages/` (e.g. `src/pages/orders/OrderListPage.tsx`). Start with `<PageHeader>` and reuse the UI kit.
+1. Create the component in `src/pages/` (e.g. `src/pages/orders/OrderListPage.tsx`). Start with Rupa's `<PageHeader>` and build the page from Rupa components.
 2. Register the route in `src/routes/index.tsx` as a child of the `MainLayout` route (it is then behind `RequireAuth`).
 3. Add a nav link in the `sections` array of `src/components/MainLayout.tsx` and its label key (see below).
 

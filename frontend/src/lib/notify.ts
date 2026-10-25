@@ -1,11 +1,10 @@
-import { useAppDispatch } from '@/app/hooks';
+import { useToast } from '@rupa-ui/react';
 import { errorMessage } from '@/api/baseApi';
-import { showToast } from '@/features/ui/uiSlice';
 
 // Run an RTK Query mutation and show a success/error toast. Resolves to the data on success,
-// or `undefined` on failure (the error toast is already shown).
+// or the error on failure (the error toast is already shown).
 export function useNotify() {
-  const dispatch = useAppDispatch();
+  const toast = useToast();
 
   return async function run<T>(
     promise: Promise<{ data: T } | { error: unknown }>,
@@ -13,10 +12,10 @@ export function useNotify() {
   ): Promise<{ ok: true; data: T } | { ok: false; error: unknown }> {
     const res = await promise;
     if ('error' in res) {
-      dispatch(showToast(errorMessage(res.error), 'error'));
+      toast.show({ tone: 'danger', title: errorMessage(res.error) });
       return { ok: false, error: res.error };
     }
-    dispatch(showToast(success));
+    toast.show({ tone: 'success', title: success });
     return { ok: true, data: res.data };
   };
 }

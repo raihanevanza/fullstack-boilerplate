@@ -5,14 +5,14 @@ export default function LogoMark({ className = 'h-5 w-5' }: { className?: string
       <path
         d="M16 7.5 25 12.5l-9 5-9-5z"
         fill="none"
-        stroke="#fff"
+        stroke="currentColor"
         strokeWidth="2.6"
         strokeLinejoin="round"
       />
       <path
         d="m7 18.5 9 5 9-5"
         fill="none"
-        stroke="#fff"
+        stroke="currentColor"
         strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"

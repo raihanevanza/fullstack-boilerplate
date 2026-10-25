@@ -1,15 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Alert, Button, Checkbox, Field, Textarea, TextField, useToast } from '@rupa-ui/react';
 import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useAppDispatch } from '@/app/hooks';
 import { errorMessage, isApiError } from '@/api/baseApi';
 import { useSaveProductMutation } from '@/api/products';
 import type { Product } from '@/api/types';
-import Button from '@/components/ui/Button';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
-import { Field, Input, Textarea } from '@/components/ui/Field';
-import Modal from '@/components/ui/Modal';
-import { showToast } from '@/features/ui/uiSlice';
+import Dialog from '@/components/ui/Dialog';
 import { useT } from '@/i18n/useT';
 import { makeProductSchema, toFormValues, toRequest, type ProductValues } from './productSchema';
 
@@ -22,7 +19,7 @@ export default function ProductFormModal({
   onClose: () => void;
 }) {
   const { t } = useT();
-  const dispatch = useAppDispatch();
+  const toast = useToast();
   const [save, { isLoading }] = useSaveProductMutation();
   const schema = useMemo(() => makeProductSchema(t), [t]);
 
@@ -40,7 +37,10 @@ export default function ProductFormModal({
   const onSubmit = async (values: ProductValues) => {
     const res = await save({ id: product?.id, body: toRequest(values) });
     if (!res.error) {
-      dispatch(showToast(product ? t('products.updated') : t('products.created')));
+      toast.show({
+        tone: 'success',
+        title: product ? t('products.updated') : t('products.created'),
+      });
       onClose();
       return;
     }
@@ -51,21 +51,24 @@ export default function ProductFormModal({
     } else if (isApiError(error) && error.code === 'bad_request') {
       setError('root.server', { message: error.message });
     } else {
-      dispatch(showToast(errorMessage(error), 'error'));
+      toast.show({ tone: 'danger', title: errorMessage(error) });
     }
   };
 
+  const required = t('common.required');
+
   return (
-    <Modal
-      open
+    <Dialog
       title={product ? t('products.editTitle', { sku: product.sku }) : t('products.newTitle')}
       onClose={onClose}
+      // Esc and outside clicks do nothing while saving
+      dismissible={!isLoading}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" form="product-form" loading={isLoading}>
+          <Button type="submit" variant="primary" form="product-form" loading={isLoading}>
             {t('common.save')}
           </Button>
         </>
@@ -78,79 +81,78 @@ export default function ProductFormModal({
         className="grid grid-cols-2 gap-4"
       >
         {errors.root?.server && (
-          <p
-            role="alert"
-            className="tone-danger col-span-2 rounded-xl px-3.5 py-2.5 text-sm ring-1 ring-inset"
-          >
+          <Alert tone="danger" live className="col-span-2">
             {errors.root.server.message}
-          </p>
+          </Alert>
         )}
-        <Field
+        <TextField
           label={t('products.sku')}
           required
+          requiredLabel={required}
           error={errors.sku?.message}
           hint={t('products.skuHint')}
-          className="col-span-2 sm:col-span-1"
-        >
-          <Input autoFocus maxLength={50} aria-invalid={!!errors.sku} {...register('sku')} />
-        </Field>
-        <Field
+          fieldClassName="col-span-2 sm:col-span-1"
+          maxLength={50}
+          {...register('sku')}
+        />
+        <TextField
           label={t('products.name')}
           required
+          requiredLabel={required}
           error={errors.name?.message}
-          className="col-span-2 sm:col-span-1"
-        >
-          <Input maxLength={200} aria-invalid={!!errors.name} {...register('name')} />
-        </Field>
-        <Field
-          label={t('products.price')}
-          required
-          error={errors.price?.message}
-          className="col-span-2 sm:col-span-1"
-        >
-          <Controller
-            control={control}
-            name="price"
-            render={({ field }) => <CurrencyInput {...field} aria-invalid={!!errors.price} />}
-          />
-        </Field>
-        <Field
+          fieldClassName="col-span-2 sm:col-span-1"
+          maxLength={200}
+          {...register('name')}
+        />
+        <Controller
+          control={control}
+          name="price"
+          render={({ field }) => (
+            <CurrencyInput
+              label={t('products.price')}
+              required
+              requiredLabel={required}
+              error={errors.price?.message}
+              fieldClassName="col-span-2 sm:col-span-1"
+              {...field}
+            />
+          )}
+        />
+        <TextField
           label={t('products.stock')}
           required
+          requiredLabel={required}
           error={errors.stock?.message}
-          className="col-span-2 sm:col-span-1"
-        >
-          <Input
-            type="number"
-            min={0}
-            step={1}
-            inputMode="numeric"
-            className="text-right"
-            aria-invalid={!!errors.stock}
-            {...register('stock', { valueAsNumber: true })}
-          />
-        </Field>
+          fieldClassName="col-span-2 sm:col-span-1"
+          type="number"
+          min={0}
+          step={1}
+          inputMode="numeric"
+          className="text-right"
+          {...register('stock', { valueAsNumber: true })}
+        />
         <Field
           label={t('products.description')}
           error={errors.description?.message}
           className="col-span-2"
         >
-          <Textarea
-            rows={3}
-            maxLength={500}
-            aria-invalid={!!errors.description}
-            {...register('description')}
-          />
+          {({ id, describedBy, invalid }) => (
+            <Textarea
+              id={id}
+              aria-describedby={describedBy}
+              aria-invalid={invalid || undefined}
+              rows={3}
+              maxLength={500}
+              {...register('description')}
+            />
+          )}
         </Field>
-        <label className="col-span-2 flex items-center gap-2.5 text-sm text-ink-2">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-line-strong accent-[rgb(var(--primary))]"
-            {...register('is_active')}
-          />
-          {t('products.isActive')}
-        </label>
+        <Checkbox
+          label={t('products.isActive')}
+          className="col-span-2"
+          {...register('is_active')}
+        />
       </form>
-    </Modal>
+    </Dialog>
   );
 }

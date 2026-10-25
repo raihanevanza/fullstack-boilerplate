@@ -24,11 +24,17 @@ export const id = {
   'common.language': 'Bahasa',
   'common.retry': 'Coba lagi',
   'common.reason': 'Alasan',
+  'common.required': 'wajib',
+  'common.notifications': 'Notifikasi',
+  'common.showTable': 'Tampilkan sebagai tabel',
 
   'pagination.showing': 'Menampilkan',
   'pagination.of': 'dari',
   'pagination.prev': 'Halaman sebelumnya',
   'pagination.next': 'Halaman berikutnya',
+  'pagination.nav': 'Paginasi',
+  'pagination.page': 'Halaman {page}',
+  'pagination.status': 'Halaman {page} dari {count}',
 
   'app.tagline': 'Starter fullstack',
   'nav.overview': 'Ringkasan',

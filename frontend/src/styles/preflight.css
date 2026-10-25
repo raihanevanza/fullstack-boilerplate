@@ -1,0 +1,4 @@
+/* Tailwind's preflight, loaded before the Rupa styles so its element resets
+   (e.g. [type='button'] { background: transparent }) never override a Rupa component.
+   The order is set in main.tsx: preflight → Rupa → utilities (index.css). */
+@tailwind base;

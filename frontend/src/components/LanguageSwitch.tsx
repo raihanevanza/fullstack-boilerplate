@@ -1,3 +1,4 @@
+import { Button, Segmented } from '@rupa-ui/react';
 import { Languages } from 'lucide-react';
 import type { Lang } from '@/i18n/core';
 import { useT } from '@/i18n/useT';
@@ -14,42 +15,37 @@ export default function LanguageSwitch({ compact = false }: { compact?: boolean 
   if (compact) {
     const next = lang === 'en' ? 'id' : 'en';
     return (
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={() => setLang(next)}
         title={`${t('common.language')}: ${options.find((o) => o.value === lang)?.name}`}
         aria-label={`${t('common.language')}: ${options.find((o) => o.value === next)?.name}`}
-        className="mx-auto grid h-10 w-10 place-items-center rounded-xl text-xs font-bold text-ink-2 hover:bg-surface-3 hover:text-ink"
+        className="mx-auto"
       >
         {lang.toUpperCase()}
-      </button>
+      </Button>
     );
   }
 
   return (
     <div className="flex items-center gap-3 px-3 py-1.5">
       <Languages size={18} className="shrink-0 text-ink-2" aria-hidden="true" />
-      <div
-        role="radiogroup"
-        aria-label={t('common.language')}
-        className="flex flex-1 rounded-lg bg-surface-3 p-0.5"
-      >
-        {options.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            role="radio"
-            aria-checked={lang === o.value}
-            title={o.name}
-            onClick={() => setLang(o.value)}
-            className={`flex-1 rounded-md py-1 text-xs font-bold transition-colors ${
-              lang === o.value ? 'bg-surface text-accent shadow-sm' : 'text-ink-3 hover:text-ink'
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        label={t('common.language')}
+        size="sm"
+        block
+        className="flex-1"
+        value={lang}
+        onChange={setLang}
+        options={options.map((o) => ({
+          value: o.value,
+          label: (
+            <span title={o.name} lang={o.value}>
+              {o.label}
+            </span>
+          ),
+        }))}
+      />
     </div>
   );
 }

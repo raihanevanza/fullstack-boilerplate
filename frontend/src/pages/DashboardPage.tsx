@@ -6,24 +6,33 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
+import { Card, PageHeader, StateView } from '@rupa-ui/react';
 import { Link } from 'react-router-dom';
 import { errorMessage } from '@/api/baseApi';
 import { useDashboardQuery } from '@/api/dashboard';
 import type { Dashboard } from '@/api/types';
 import DonutChart from '@/components/charts/DonutChart';
-import PageHeader from '@/components/PageHeader';
-import Card from '@/components/ui/Card';
 import ProductTable from '@/pages/products/ProductTable';
 import { useCurrentUser } from '@/features/auth/usePermission';
 import { useT } from '@/i18n/useT';
 import { formatCurrency, formatCurrencyCompact, formatNumber } from '@/lib/format';
 import { LOW_STOCK_THRESHOLD } from '@/lib/config';
 
-// Validated chart series slots (src/index.css). Each slot follows its entity, never its rank.
+// Rupa chart series slots, validated for color-vision deficiency and contrast in every brand and
+// mode. Each slot follows its entity, never its rank.
 const SERIES = {
-  inStock: 'var(--series-1)',
-  inactive: 'var(--series-2)',
-  lowStock: 'var(--series-3)',
+  inStock: 'var(--rupa-color-series-1)',
+  inactive: 'var(--rupa-color-series-2)',
+  lowStock: 'var(--rupa-color-series-3)',
+};
+
+// Icon tile colors per tone, from the Rupa tokens
+const TONES = {
+  accent: 'bg-accent-soft text-accent',
+  success: 'bg-success-soft text-success-ink',
+  neutral: 'bg-surface-3 text-ink-2',
+  warning: 'bg-warning-soft text-warning-ink',
+  info: 'bg-info-soft text-info-ink',
 };
 
 function StatTile({
@@ -38,32 +47,36 @@ function StatTile({
   value: string;
   caption: string;
   icon: LucideIcon;
-  tone: string;
+  tone: keyof typeof TONES;
   to?: string;
 }) {
   const body = (
-    <div className="h-full rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-accent-line">
+    <>
       <div className="flex items-center gap-3">
-        <span className={`grid h-9 w-9 place-items-center rounded-xl ring-1 ring-inset ${tone}`}>
-          <Icon size={18} />
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${TONES[tone]}`}>
+          <Icon size={18} aria-hidden="true" />
         </span>
         <p className="text-sm font-medium text-ink-2">{label}</p>
       </div>
-      <p className="mt-4 truncate text-[28px] font-bold leading-none tracking-tight text-ink">
-        {value}
-      </p>
-      <p className="mt-2 text-xs text-ink-3">{caption}</p>
-    </div>
+      <div>
+        <p className="truncate text-[28px] font-bold leading-none tracking-tight text-ink">
+          {value}
+        </p>
+        <p className="mt-2 text-xs text-ink-3">{caption}</p>
+      </div>
+    </>
   );
   return to ? (
     <Link
       to={to}
-      className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+      className="group block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      {body}
+      <Card className="h-full transition-[border-color,box-shadow] group-hover:border-line-strong group-hover:shadow-pop">
+        {body}
+      </Card>
     </Link>
   ) : (
-    body
+    <Card className="h-full">{body}</Card>
   );
 }
 
@@ -81,7 +94,7 @@ function StatusCard({ data }: { data: Dashboard }) {
   ];
 
   return (
-    <Card title={t('dashboard.statusTitle')} subtitle={t('dashboard.statusHint')}>
+    <Card title={t('dashboard.statusTitle')} description={t('dashboard.statusHint')}>
       <DonutChart
         slices={slices}
         formatValue={formatNumber}
@@ -94,7 +107,7 @@ function StatusCard({ data }: { data: Dashboard }) {
 export default function DashboardPage() {
   const user = useCurrentUser();
   const { t } = useT();
-  const { data, isLoading, error } = useDashboardQuery(undefined, {
+  const { data, isLoading, error, refetch } = useDashboardQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
 
@@ -102,11 +115,20 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title={t('dashboard.title')}
-        subtitle={t('dashboard.welcome', { name: user?.full_name ?? '' })}
+        description={t('dashboard.welcome', { name: user?.full_name ?? '' })}
+        className="mb-6"
       />
 
-      {isLoading && <p className="text-sm text-ink-3">{t('common.loading')}</p>}
-      {error && <p className="text-danger text-sm">{errorMessage(error)}</p>}
+      {isLoading && <StateView state="loading" title={t('common.loading')} description={null} />}
+      {error && (
+        <StateView
+          state="error"
+          title={t('common.failed')}
+          description={errorMessage(error)}
+          retryLabel={t('common.retry')}
+          onRetry={refetch}
+        />
+      )}
 
       {data && (
         <div className="space-y-5">
@@ -116,7 +138,7 @@ export default function DashboardPage() {
               value={formatNumber(data.total_products)}
               caption={t('dashboard.totalProductsHint')}
               icon={Package}
-              tone="tone-brand"
+              tone="accent"
               to="/products"
             />
             <StatTile
@@ -124,7 +146,7 @@ export default function DashboardPage() {
               value={formatNumber(data.active_products)}
               caption={t('dashboard.activeProductsHint')}
               icon={CircleCheck}
-              tone="tone-success"
+              tone="success"
               to="/products?active_only=true"
             />
             <StatTile
@@ -132,21 +154,21 @@ export default function DashboardPage() {
               value={formatNumber(data.inactive_products)}
               caption={t('dashboard.inactiveProductsHint')}
               icon={Archive}
-              tone="tone-neutral"
+              tone="neutral"
             />
             <StatTile
               label={t('dashboard.lowStock')}
               value={formatNumber(data.low_stock_products)}
               caption={t('dashboard.lowStockHint', { n: LOW_STOCK_THRESHOLD })}
               icon={PackageSearch}
-              tone="tone-warning"
+              tone="warning"
             />
             <StatTile
               label={t('dashboard.inventoryValue')}
               value={formatCurrencyCompact(data.inventory_value)}
               caption={`${formatCurrency(data.inventory_value)} · ${t('dashboard.inventoryValueHint')}`}
               icon={Wallet}
-              tone="tone-violet"
+              tone="info"
             />
           </div>
 
@@ -154,15 +176,20 @@ export default function DashboardPage() {
             <StatusCard data={data} />
             <Card
               title={t('dashboard.recentProducts')}
-              padded={false}
-              className="lg:col-span-2"
+              padding="none"
+              className="overflow-hidden lg:col-span-2"
               actions={
                 <Link to="/products" className="text-sm font-semibold text-accent hover:underline">
                   {t('common.viewAll')}
                 </Link>
               }
             >
-              <ProductTable rows={data.recent_products} flush compact />
+              <ProductTable
+                rows={data.recent_products}
+                caption={t('dashboard.recentProducts')}
+                flush
+                compact
+              />
             </Card>
           </div>
         </div>

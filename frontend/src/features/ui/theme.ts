@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export type Theme = 'light' | 'dark';
 const KEY = 'theme';
 
+const root = document.documentElement;
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+// data-theme is "light", "dark" or "system" (the Rupa tokens resolve "system" with the OS setting)
 function currentTheme(): Theme {
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+  const set = root.dataset.theme;
+  if (set === 'light' || set === 'dark') return set;
+  return darkQuery.matches ? 'dark' : 'light';
 }
 
 // Until the user picks a theme, the OS setting applies (see the inline script in index.html).
@@ -12,9 +18,16 @@ function currentTheme(): Theme {
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(currentTheme);
 
+  // Follow OS changes while no explicit choice is stored
+  useEffect(() => {
+    const onChange = () => setTheme(currentTheme());
+    darkQuery.addEventListener('change', onChange);
+    return () => darkQuery.removeEventListener('change', onChange);
+  }, []);
+
   const toggle = () => {
     const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.classList.toggle('dark', next === 'dark');
+    root.dataset.theme = next;
     try {
       localStorage.setItem(KEY, next);
     } catch {

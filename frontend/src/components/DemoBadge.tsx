@@ -1,3 +1,4 @@
+import { Badge, Button } from '@rupa-ui/react';
 import { FlaskConical, RotateCcw } from 'lucide-react';
 import { useT } from '@/i18n/useT';
 
@@ -17,19 +18,20 @@ export default function DemoBadge() {
 
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span className="tone-warning flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset">
+      <Badge tone="warning" className="shrink-0">
         <FlaskConical size={14} aria-hidden="true" />
         {t('demo.badge')}
-      </span>
+      </Badge>
       <span className="hidden truncate text-xs text-ink-3 md:inline">{t('demo.note')}</span>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="shrink-0"
+        iconStart={<RotateCcw size={14} aria-hidden="true" />}
         onClick={reset}
-        className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-ink-2 hover:bg-surface-3 hover:text-ink"
       >
-        <RotateCcw size={14} aria-hidden="true" />
         {t('demo.reset')}
-      </button>
+      </Button>
     </div>
   );
 }

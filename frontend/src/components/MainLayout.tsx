@@ -10,6 +10,7 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
+import { Avatar, IconButton } from '@rupa-ui/react';
 import { useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -17,7 +18,6 @@ import { baseApi } from '@/api/baseApi';
 import DemoBadge from '@/components/DemoBadge';
 import LanguageSwitch from '@/components/LanguageSwitch';
 import Logo from '@/components/Logo';
-import Toaster from '@/components/Toaster';
 import { loggedOut } from '@/features/auth/authSlice';
 import { useCurrentUser } from '@/features/auth/usePermission';
 import { useTheme } from '@/features/ui/theme';
@@ -45,15 +45,6 @@ const sections: { titleKey: TKey; links: NavItem[] }[] = [
     links: [{ to: '/products', labelKey: 'nav.products', icon: Package }],
   },
 ];
-
-const initials = (name: string) =>
-  name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
 
 export default function MainLayout() {
   const sidebarOpen = useAppSelector((state) => state.ui.sidebarOpen);
@@ -99,7 +90,7 @@ export default function MainLayout() {
       {/* Mobile backdrop */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-30 bg-[#120e24]/40 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-30 bg-overlay backdrop-blur-[2px] lg:hidden"
           onClick={closeDrawer}
           aria-hidden="true"
         />
@@ -117,37 +108,34 @@ export default function MainLayout() {
           <Logo compact={!expanded} />
           {isDesktop
             ? expanded && (
-                <button
-                  type="button"
+                <IconButton
+                  size="sm"
+                  icon={<ChevronsLeft size={18} />}
+                  label={t('nav.collapse')}
                   onClick={() => dispatch(toggleSidebar())}
-                  aria-label={t('nav.collapse')}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-ink-3 hover:bg-surface-3 hover:text-ink"
-                >
-                  <ChevronsLeft size={18} />
-                </button>
+                />
               )
             : drawerOpen && (
-                <button
-                  type="button"
+                <IconButton
+                  size="sm"
+                  icon={<X size={18} />}
+                  label={t('nav.closeMenu')}
+                  tooltip={false}
                   onClick={closeDrawer}
-                  aria-label={t('nav.closeMenu')}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-ink-3 hover:bg-surface-3 hover:text-ink"
-                >
-                  <X size={18} />
-                </button>
+                />
               )}
         </div>
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-2">
           {!expanded && (
-            <button
-              type="button"
-              onClick={() => dispatch(toggleSidebar())}
-              aria-label={t('nav.expand')}
-              className="mx-auto grid h-9 w-9 place-items-center rounded-lg text-ink-3 hover:bg-surface-3 hover:text-ink"
-            >
-              <ChevronsRight size={18} />
-            </button>
+            <div className="flex justify-center">
+              <IconButton
+                size="sm"
+                icon={<ChevronsRight size={18} />}
+                label={t('nav.expand')}
+                onClick={() => dispatch(toggleSidebar())}
+              />
+            </div>
           )}
           {sections.map((section) => (
             <div key={section.titleKey}>
@@ -191,12 +179,7 @@ export default function MainLayout() {
             <div
               className={`flex items-center gap-3 rounded-xl px-2 py-2.5 ${expanded ? '' : 'justify-center'}`}
             >
-              <span
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#A48BF5] to-[#6A46D6] text-sm font-bold text-white"
-                title={user.full_name}
-              >
-                {initials(user.full_name)}
-              </span>
+              <Avatar name={user.full_name} title={user.full_name} className="shrink-0" />
               {expanded && (
                 <span className="min-w-0 leading-tight">
                   <span className="block truncate text-sm font-semibold text-ink">
@@ -228,16 +211,15 @@ export default function MainLayout() {
           }`}
         >
           <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-10">
-            <button
-              type="button"
-              onClick={() => dispatch(setDrawerOpen(true))}
-              aria-label={t('nav.openMenu')}
+            <IconButton
+              icon={<Menu size={20} />}
+              label={t('nav.openMenu')}
+              tooltip={false}
               aria-controls="app-sidebar"
               aria-expanded={drawerOpen}
-              className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-2 hover:bg-surface-3 hover:text-ink lg:hidden"
-            >
-              <Menu size={20} />
-            </button>
+              className="-ml-1 shrink-0 lg:hidden"
+              onClick={() => dispatch(setDrawerOpen(true))}
+            />
             <div className="lg:hidden">
               <Logo compact />
             </div>
@@ -252,7 +234,6 @@ export default function MainLayout() {
           <Outlet />
         </div>
       </main>
-      <Toaster />
     </div>
   );
 }

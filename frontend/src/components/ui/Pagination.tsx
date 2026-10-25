@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pagination as RupaPagination } from '@rupa-ui/react';
 import { useT } from '@/i18n/useT';
 import { formatNumber } from '@/lib/format';
 
@@ -9,9 +9,7 @@ interface Props {
   onChange: (page: number) => void;
 }
 
-const navButton =
-  'grid h-8 w-8 place-items-center rounded-lg border border-line bg-surface text-ink-2 hover:bg-surface-3 disabled:opacity-40 disabled:hover:bg-surface';
-
+// "Showing 1–10 of 42" plus Rupa's page buttons, with translated labels
 export default function Pagination({ page, limit, count, onChange }: Props) {
   const { t } = useT();
   const pages = Math.max(1, Math.ceil(count / limit));
@@ -29,29 +27,20 @@ export default function Pagination({ page, limit, count, onChange }: Props) {
         </span>{' '}
         {t('pagination.of')} <span className="font-semibold text-ink-2">{formatNumber(count)}</span>
       </span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label={t('pagination.prev')}
-          className={navButton}
-          disabled={page <= 1}
-          onClick={() => onChange(page - 1)}
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <span className="min-w-[4rem] text-center font-medium text-ink-2">
-          {page} / {pages}
-        </span>
-        <button
-          type="button"
-          aria-label={t('pagination.next')}
-          className={navButton}
-          disabled={page >= pages}
-          onClick={() => onChange(page + 1)}
-        >
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      {pages > 1 && (
+        <RupaPagination
+          page={page}
+          pageCount={pages}
+          onPageChange={onChange}
+          labels={{
+            nav: t('pagination.nav'),
+            previous: t('pagination.prev'),
+            next: t('pagination.next'),
+            page: (p) => t('pagination.page', { page: p }),
+            status: (p, n) => t('pagination.status', { page: p, count: n }),
+          }}
+        />
+      )}
     </div>
   );
 }

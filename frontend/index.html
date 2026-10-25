@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-brand="violet">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -13,12 +13,13 @@
     />
     <script>
       // Apply the theme before first paint to avoid a flash (see src/features/ui/theme.ts)
+      // data-theme="system" follows the OS until the user picks light or dark
       try {
         var t = localStorage.getItem('theme');
-        if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
-          document.documentElement.classList.add('dark');
-        }
-      } catch (e) {}
+        document.documentElement.dataset.theme = t === 'dark' || t === 'light' ? t : 'system';
+      } catch (e) {
+        document.documentElement.dataset.theme = 'system';
+      }
     </script>
   </head>
   <body>
