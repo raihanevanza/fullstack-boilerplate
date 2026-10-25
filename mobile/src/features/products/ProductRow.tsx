@@ -1,11 +1,11 @@
+import {Badge} from '@rupa-ui/react-native';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {Product} from '@/core/api/types';
 import {useFormat} from '@/core/format/useFormat';
 import {useT} from '@/core/i18n/useT';
 import {AppText} from '@/shared/AppText';
-import {Badge} from '@/shared/Badge';
-import {Card} from '@/shared/Card';
+import {PressableCard} from '@/shared/PressableCard';
 import {isLowStock} from './productForm';
 
 // One product in the list: name + SKU, status badge, stock and price
@@ -24,7 +24,7 @@ export function ProductRow({
     : t('products.inactive');
 
   return (
-    <Card
+    <PressableCard
       onPress={onPress}
       accessibilityLabel={`${product.name}, ${
         product.sku
@@ -39,10 +39,9 @@ export function ProductRow({
             {product.sku}
           </AppText>
         </View>
-        <Badge
-          label={status}
-          tone={product.is_active ? 'success' : 'neutral'}
-        />
+        <Badge tone={product.is_active ? 'success' : 'neutral'} dot>
+          {status}
+        </Badge>
       </View>
       <View style={styles.bottom}>
         <View style={[styles.flex, styles.stock]}>
@@ -55,20 +54,22 @@ export function ProductRow({
             {t('products.stockCount', {count: f.number(product.stock)})}
           </AppText>
           {low ? (
-            <Badge label={t('products.lowStock')} tone="warning" dot={false} />
+            <Badge tone="warning" size="sm">
+              {t('products.lowStock')}
+            </Badge>
           ) : null}
         </View>
         <AppText variant="heading" numeric>
           {f.currency(product.price)}
         </AppText>
       </View>
-    </Card>
+    </PressableCard>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {flex: 1},
   top: {flexDirection: 'row', alignItems: 'flex-start', gap: 8},
-  bottom: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12},
+  bottom: {flexDirection: 'row', alignItems: 'center', gap: 8},
   stock: {flexDirection: 'row', alignItems: 'center', gap: 8},
 });

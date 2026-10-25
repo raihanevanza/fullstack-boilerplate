@@ -13,7 +13,7 @@ language and theme settings. It talks to the backend through the contract in [do
 | Navigation | React Navigation 7 (native stack + bottom tabs), react-native-screens |
 | State & API | Redux Toolkit + RTK Query (infinite queries for paginated lists) |
 | Session | react-native-keychain (iOS Keychain / Android Keystore); preferences in AsyncStorage |
-| UI | Violet design tokens with dark mode, Plus Jakarta Sans (OFL, `assets/fonts`), react-native-svg (charts, logo), lucide-react-native (icons) |
+| UI | [Rupa](https://github.com/raihanevanza/rupa) design system (`@rupa-ui/react-native`, violet brand, same tokens as the web app) with dark mode, Plus Jakarta Sans (OFL, `assets/fonts`), react-native-svg (charts, logo), lucide-react-native (icons) |
 | i18n | English (default) and Indonesian, `src/core/i18n` |
 | Tooling | Jest, ESLint (`@react-native`), Prettier |
 
@@ -104,14 +104,13 @@ src/
     format/     number, currency and date formatters per language
     i18n/       en.ts (source of keys), id.ts, translate(), useT()
     prefs/      language + theme preferences (AsyncStorage)
-    theme/      color tokens (light / dark), typography (font()), useTheme()
   features/
     auth/       LoginScreen
     home/       HomeScreen, DonutChart
     products/   list, detail, form screens, ProductRow, productForm.ts (validation + mapping)
     profile/    ProfileScreen
-  shared/       reusable UI kit: AppText, Badge, Banner, Button, Card, ChipGroup, ConfirmDialog, InfoList,
-                ListState, Logo, PageHeader, Screen, SearchBar, Segmented, TextField, notify, useInfiniteList
+  shared/       app pieces on top of Rupa: AppText, ListState (StateView with translations), Logo,
+                PageHeader (Rupa PageHeader + back link), PressableCard, Screen, SearchBar, notify, useInfiniteList
 __tests__/      Jest tests
 assets/fonts/   Plus Jakarta Sans (licensed under the SIL OFL, see assets/licenses)
 android/  ios/  native projects
@@ -120,8 +119,10 @@ android/  ios/  native projects
 Conventions:
 
 - Screens never call `fetch` or read the token; every request goes through `core/api` (adds `Authorization`, `Accept-Language`, `X-Platform: mobile`, a 15 s timeout, and turns the error envelope into a typed `ApiErrorData`).
-- Text uses `<AppText>` or the `font('semibold')` helper from `core/theme/typography.ts`, never `fontWeight`: Android picks custom fonts by family name.
-- Colors come from `useTheme()`, so every screen works in light and dark mode.
+- UI comes from `@rupa-ui/react-native` first (Button, Badge, Card, TextField, Segmented, ChipGroup, ConfirmDialog, Alert, InfoList, StateView, …). Pass translated text for built-in labels (`cancelLabel`, `requiredLabel`, `retryLabel`, …).
+- `ThemeProvider` in `src/app/App.tsx` sets the brand (`BRAND`) and follows the saved theme preference.
+- Text uses `<AppText>` or `useTheme().font('semibold')`, never `fontWeight`: Android picks custom fonts by family name.
+- Colors come from `useTheme().palette` (Rupa tokens), so every screen works in light and dark mode.
 - New strings go into both `en.ts` and `id.ts` (a test checks the keys match).
 
 ### Fonts

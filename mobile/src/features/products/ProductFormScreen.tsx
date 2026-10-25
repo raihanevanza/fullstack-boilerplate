@@ -1,10 +1,18 @@
+import {
+  Alert,
+  Button,
+  Card,
+  ChipGroup,
+  TextField,
+  useTheme,
+  type TextFieldRef,
+} from '@rupa-ui/react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -19,17 +27,11 @@ import {ERR_DUPLICATE} from '@/core/api/http';
 import {useCan} from '@/core/auth/useCan';
 import {useFormat} from '@/core/format/useFormat';
 import {useT} from '@/core/i18n/useT';
-import {useTheme} from '@/core/theme/useTheme';
 import {AppText} from '@/shared/AppText';
-import {Banner} from '@/shared/Banner';
-import {Button} from '@/shared/Button';
-import {Card} from '@/shared/Card';
-import {ChipGroup} from '@/shared/ChipGroup';
 import {ListState} from '@/shared/ListState';
 import {notify} from '@/shared/notify';
 import {PageHeader} from '@/shared/PageHeader';
 import {Screen} from '@/shared/Screen';
-import {TextField} from '@/shared/TextField';
 import {
   DESCRIPTION_MAX,
   EMPTY_FORM,
@@ -48,7 +50,7 @@ import {
   type ProductFormValues,
 } from './productForm';
 
-type InputRef = React.ComponentRef<typeof TextInput>;
+type InputRef = TextFieldRef;
 
 export function ProductFormScreen({
   route,
@@ -56,7 +58,7 @@ export function ProductFormScreen({
 }: RootScreenProps<'ProductForm'>) {
   const id = route.params?.id;
   const editing = id !== undefined;
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const f = useFormat();
   const insets = useSafeAreaInsets();
@@ -142,7 +144,7 @@ export function ProductFormScreen({
       <Screen>
         <PageHeader title={title} back={back} />
         <View style={styles.body}>
-          <Banner message={t('products.noPermission')} tone="danger" />
+          <Alert tone="danger">{t('products.noPermission')}</Alert>
         </View>
       </Screen>
     );
@@ -175,16 +177,22 @@ export function ProductFormScreen({
         >
           <PageHeader
             title={title}
-            subtitle={t('products.formSubtitle')}
+            description={t('products.formSubtitle')}
             back={back}
           />
           <View style={styles.body}>
-            {formError ? <Banner message={formError} tone="danger" /> : null}
+            {formError ? (
+              <Alert tone="danger" live>
+                {formError}
+              </Alert>
+            ) : null}
 
             <Card>
               <View style={styles.fields}>
                 <TextField
-                  label={`${t('products.sku')} *`}
+                  label={t('products.sku')}
+                  required
+                  requiredLabel={t('common.required')}
                   value={values.sku}
                   onChangeText={set('sku')}
                   error={fieldError('sku')}
@@ -194,11 +202,13 @@ export function ProductFormScreen({
                   maxLength={SKU_MAX}
                   returnKeyType="next"
                   onSubmitEditing={() => nameRef.current?.focus()}
-                  editable={!saving}
+                  disabled={saving}
                 />
                 <TextField
                   ref={nameRef}
-                  label={`${t('products.name')} *`}
+                  label={t('products.name')}
+                  required
+                  requiredLabel={t('common.required')}
                   value={values.name}
                   onChangeText={set('name')}
                   error={fieldError('name')}
@@ -206,13 +216,15 @@ export function ProductFormScreen({
                   maxLength={NAME_MAX}
                   returnKeyType="next"
                   onSubmitEditing={() => priceRef.current?.focus()}
-                  editable={!saving}
+                  disabled={saving}
                 />
                 <View style={styles.row}>
                   <View style={styles.flex}>
                     <TextField
                       ref={priceRef}
-                      label={`${t('products.price')} *`}
+                      label={t('products.price')}
+                      required
+                      requiredLabel={t('common.required')}
                       value={values.price}
                       onChangeText={text =>
                         set('price')(sanitizePriceInput(text))
@@ -227,13 +239,15 @@ export function ProductFormScreen({
                       keyboardType="decimal-pad"
                       returnKeyType="next"
                       onSubmitEditing={() => stockRef.current?.focus()}
-                      editable={!saving}
+                      disabled={saving}
                     />
                   </View>
                   <View style={styles.flex}>
                     <TextField
                       ref={stockRef}
-                      label={`${t('products.stock')} *`}
+                      label={t('products.stock')}
+                      required
+                      requiredLabel={t('common.required')}
                       value={values.stock}
                       onChangeText={text =>
                         set('stock')(sanitizeStockInput(text))
@@ -243,7 +257,7 @@ export function ProductFormScreen({
                       keyboardType="number-pad"
                       returnKeyType="next"
                       onSubmitEditing={() => descriptionRef.current?.focus()}
-                      editable={!saving}
+                      disabled={saving}
                     />
                   </View>
                 </View>
@@ -257,23 +271,22 @@ export function ProductFormScreen({
                   placeholder={t('products.descriptionPlaceholder')}
                   maxLength={DESCRIPTION_MAX}
                   multiline
-                  editable={!saving}
+                  disabled={saving}
                 />
                 <View style={styles.status}>
                   <AppText variant="label" color="ink2">
                     {t('products.status')}
                   </AppText>
-                  <View style={styles.chips}>
-                    <ChipGroup<'active' | 'inactive'>
-                      scroll={false}
-                      value={values.isActive ? 'active' : 'inactive'}
-                      onChange={value => set('isActive')(value === 'active')}
-                      options={[
-                        {value: 'active', label: t('products.active')},
-                        {value: 'inactive', label: t('products.inactive')},
-                      ]}
-                    />
-                  </View>
+                  <ChipGroup<'active' | 'inactive'>
+                    label={t('products.status')}
+                    wrap
+                    value={values.isActive ? 'active' : 'inactive'}
+                    onChange={value => set('isActive')(value === 'active')}
+                    options={[
+                      {value: 'active', label: t('products.active')},
+                      {value: 'inactive', label: t('products.inactive')},
+                    ]}
+                  />
                 </View>
               </View>
             </Card>
@@ -284,25 +297,28 @@ export function ProductFormScreen({
           style={[
             styles.actionBar,
             {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.line,
+              backgroundColor: palette.surface,
+              borderTopColor: palette.line,
               paddingBottom: 12 + insets.bottom,
             },
           ]}
         >
           <Button
-            label={t('common.cancel')}
             variant="secondary"
             onPress={() => navigation.goBack()}
             disabled={saving}
             style={styles.flex}
-          />
+          >
+            {t('common.cancel')}
+          </Button>
           <Button
-            label={t('common.save')}
+            variant="primary"
             onPress={submit}
             loading={saving}
             style={styles.flex}
-          />
+          >
+            {t('common.save')}
+          </Button>
         </View>
       </KeyboardAvoidingView>
     </Screen>
@@ -316,7 +332,6 @@ const styles = StyleSheet.create({
   fields: {gap: 16},
   row: {flexDirection: 'row', gap: 12, alignItems: 'flex-start'},
   status: {gap: 8},
-  chips: {flexDirection: 'row', gap: 8},
   actionBar: {
     flexDirection: 'row',
     gap: 12,

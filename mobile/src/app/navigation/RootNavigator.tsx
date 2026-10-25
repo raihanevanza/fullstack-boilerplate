@@ -1,7 +1,7 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useTheme} from '@rupa-ui/react-native';
 import React from 'react';
 import {useAppSelector} from '@/app/hooks';
-import {useTheme} from '@/core/theme/useTheme';
 import {LoginScreen} from '@/features/auth/LoginScreen';
 import {ProductDetailScreen} from '@/features/products/ProductDetailScreen';
 import {ProductFormScreen} from '@/features/products/ProductFormScreen';
@@ -12,14 +12,14 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const signedIn = useAppSelector(state => state.session.status === 'signedIn');
-  const {colors} = useTheme();
+  const {palette} = useTheme();
 
   return (
     // Every screen draws its own title (PageHeader) instead of the native header
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: {backgroundColor: colors.canvas},
+        contentStyle: {backgroundColor: palette.canvas},
       }}
     >
       {signedIn ? (

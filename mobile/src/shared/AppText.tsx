@@ -1,9 +1,8 @@
+import {useTheme, type Palette, type Weight} from '@rupa-ui/react-native';
 import React from 'react';
 import {StyleSheet, Text, type TextProps} from 'react-native';
-import type {Palette} from '@/core/theme/colors';
-import {font, type Weight} from '@/core/theme/typography';
-import {useTheme} from '@/core/theme/useTheme';
 
+// App text in the Rupa font and palette (Rupa components bring their own text).
 // Type scale follows the web app: page title 26 bold, card title 15 bold, uppercase label 11 semibold
 type Variant =
   | 'display'
@@ -47,14 +46,14 @@ export function AppText({
   style,
   ...rest
 }: Props) {
-  const {colors} = useTheme();
+  const {palette, font} = useTheme();
   return (
     <Text
       {...rest}
       style={[
         styles[variant],
         font(weight ?? WEIGHT[variant]),
-        {color: colors[color]},
+        {color: palette[color]},
         numeric && styles.numeric,
         style,
       ]}

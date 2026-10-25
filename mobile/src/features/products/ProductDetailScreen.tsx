@@ -1,12 +1,15 @@
-import {Pencil, Trash2} from 'lucide-react-native';
-import React, {useState} from 'react';
 import {
   Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+  Badge,
+  Button,
+  Card,
+  ConfirmDialog,
+  InfoList,
+  useTheme,
+} from '@rupa-ui/react-native';
+import {Pencil, Trash2} from 'lucide-react-native';
+import React, {useState} from 'react';
+import {RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import type {RootScreenProps} from '@/app/navigation/types';
 import {useDeleteProductMutation, useProductQuery} from '@/core/api/api';
@@ -14,26 +17,21 @@ import {errorMessage} from '@/core/api/errorMessage';
 import {useCan} from '@/core/auth/useCan';
 import {useFormat} from '@/core/format/useFormat';
 import {useT} from '@/core/i18n/useT';
-import {useTheme} from '@/core/theme/useTheme';
 import {AppText} from '@/shared/AppText';
-import {Badge} from '@/shared/Badge';
-import {Banner} from '@/shared/Banner';
-import {Button} from '@/shared/Button';
-import {Card} from '@/shared/Card';
-import {ConfirmDialog} from '@/shared/ConfirmDialog';
-import {InfoList} from '@/shared/InfoList';
 import {ListState} from '@/shared/ListState';
 import {notify} from '@/shared/notify';
 import {PageHeader} from '@/shared/PageHeader';
 import {Screen} from '@/shared/Screen';
 import {isLowStock} from './productForm';
 
+const editIcon = (color: string) => <Pencil size={18} color={color} />;
+
 export function ProductDetailScreen({
   route,
   navigation,
 }: RootScreenProps<'ProductDetail'>) {
   const {id} = route.params;
-  const {colors, tones} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const f = useFormat();
   const insets = useSafeAreaInsets();
@@ -59,15 +57,15 @@ export function ProductDetailScreen({
     }
   };
 
+  // Throwing keeps the dialog open with the error; resolving closes it
   const runDelete = async () => {
-    setConfirmOpen(false);
     try {
       await deleteProduct(id).unwrap();
-      notify(t('products.deleted'));
-      navigation.goBack();
     } catch (err) {
-      Alert.alert(t('common.error'), errorMessage(err, t));
+      throw new Error(errorMessage(err, t));
     }
+    notify(t('products.deleted'));
+    navigation.goBack();
   };
 
   const back = {label: t('products.back'), onPress: () => navigation.goBack()};
@@ -98,69 +96,76 @@ export function ProductDetailScreen({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.accent]}
-            tintColor={colors.accent}
+            colors={[palette.accent]}
+            tintColor={palette.accent}
           />
         }
       >
         <PageHeader
           title={product.name}
-          subtitle={product.sku}
-          badge={
-            <Badge
-              label={
-                product.is_active
-                  ? t('products.active')
-                  : t('products.inactive')
-              }
-              tone={product.is_active ? 'success' : 'neutral'}
-            />
+          description={product.sku}
+          meta={
+            <Badge tone={product.is_active ? 'success' : 'neutral'} dot>
+              {product.is_active
+                ? t('products.active')
+                : t('products.inactive')}
+            </Badge>
           }
           back={back}
         />
         <View style={styles.body}>
-          {error ? <Banner message={t('common.staleData')} /> : null}
+          {error ? <Alert tone="warning">{t('common.staleData')}</Alert> : null}
           {!canWrite ? (
-            <Banner message={t('products.readOnly')} tone="info" />
+            <Alert tone="info">{t('products.readOnly')}</Alert>
           ) : null}
 
           <Card title={t('products.details')}>
             <InfoList
+              columns={2}
+              emptyValue="-"
               items={[
-                [t('products.sku'), product.sku],
-                [
-                  t('products.price'),
-                  <AppText weight="bold" numeric>
-                    {f.currency(product.price)}
-                  </AppText>,
-                ],
-                [
-                  t('products.stock'),
-                  <View style={styles.stock}>
-                    <AppText
-                      weight="semibold"
-                      numeric
-                      color={low ? 'danger' : 'ink'}
-                    >
-                      {f.number(product.stock)}
+                {label: t('products.sku'), value: product.sku},
+                {
+                  label: t('products.price'),
+                  value: (
+                    <AppText weight="bold" numeric>
+                      {f.currency(product.price)}
                     </AppText>
-                    {low ? (
-                      <Badge
-                        label={t('products.lowStock')}
-                        tone="warning"
-                        dot={false}
-                      />
-                    ) : null}
-                  </View>,
-                ],
-                [
-                  t('products.status'),
-                  product.is_active
+                  ),
+                },
+                {
+                  label: t('products.stock'),
+                  value: (
+                    <View style={styles.stock}>
+                      <AppText
+                        weight="semibold"
+                        numeric
+                        color={low ? 'danger' : 'ink'}
+                      >
+                        {f.number(product.stock)}
+                      </AppText>
+                      {low ? (
+                        <Badge tone="warning" size="sm">
+                          {t('products.lowStock')}
+                        </Badge>
+                      ) : null}
+                    </View>
+                  ),
+                },
+                {
+                  label: t('products.status'),
+                  value: product.is_active
                     ? t('products.active')
                     : t('products.inactive'),
-                ],
-                [t('products.created'), f.dateTime(product.created_at)],
-                [t('products.updated'), f.dateTime(product.updated_at)],
+                },
+                {
+                  label: t('products.created'),
+                  value: f.dateTime(product.created_at),
+                },
+                {
+                  label: t('products.updated'),
+                  value: f.dateTime(product.updated_at),
+                },
               ]}
             />
           </Card>
@@ -178,40 +183,56 @@ export function ProductDetailScreen({
           style={[
             styles.actionBar,
             {
-              backgroundColor: colors.surface,
-              borderTopColor: colors.line,
+              backgroundColor: palette.surface,
+              borderTopColor: palette.line,
               paddingBottom: 12 + insets.bottom,
             },
           ]}
         >
           <Button
-            label={t('common.delete')}
             variant="secondary"
-            icon={<Trash2 size={18} color={tones.danger.fg} />}
+            iconStart={<Trash2 size={18} color={palette.dangerInk} />}
             onPress={() => setConfirmOpen(true)}
-            loading={deleteState.isLoading}
+            disabled={deleteState.isLoading}
             style={styles.flex}
-          />
+          >
+            {t('common.delete')}
+          </Button>
           <Button
-            label={t('common.edit')}
-            icon={<Pencil size={18} color="#FFFFFF" />}
+            variant="primary"
+            iconStart={editIcon}
             onPress={() => navigation.navigate('ProductForm', {id})}
             disabled={deleteState.isLoading}
             style={styles.flex}
-          />
+          >
+            {t('common.edit')}
+          </Button>
         </View>
       ) : null}
 
       <ConfirmDialog
-        visible={confirmOpen}
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        tone="danger"
         title={t('products.deleteTitle')}
-        highlight={`${product.sku} · ${product.name}`}
         description={t('products.deleteDesc')}
         confirmLabel={t('common.delete')}
-        confirmVariant="danger"
+        cancelLabel={t('common.cancel')}
+        errorTitle={t('common.failed')}
+        errorMessage={t('common.error')}
         onConfirm={runDelete}
-        onCancel={() => setConfirmOpen(false)}
-      />
+      >
+        <View
+          style={[
+            styles.highlight,
+            {backgroundColor: palette.surface2, borderColor: palette.line},
+          ]}
+        >
+          <AppText weight="semibold" numeric>
+            {product.sku} · {product.name}
+          </AppText>
+        </View>
+      </ConfirmDialog>
     </Screen>
   );
 }
@@ -221,6 +242,12 @@ const styles = StyleSheet.create({
   content: {paddingBottom: 32},
   body: {paddingHorizontal: 16, gap: 14},
   stock: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  highlight: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   actionBar: {
     flexDirection: 'row',
     gap: 12,

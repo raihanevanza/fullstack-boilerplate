@@ -6,8 +6,8 @@ It ships with what most projects end up rebuilding: JWT login, role-based permis
 
 ![Dashboard](docs/screenshots/dashboard-light.png)
 
-| Products                                       | Dark mode                                           | Mobile (iOS)                                                              |
-| ---------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
+| Products                                         | Dark mode                                         | Mobile (iOS)                                                                  |
+| ------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------- |
 | ![Products](docs/screenshots/products-light.png) | ![Dark mode](docs/screenshots/dashboard-dark.png) | <img src="docs/screenshots/mobile-ios-login.png" width="220" alt="iOS login"> |
 
 ## What's included
@@ -23,12 +23,12 @@ It ships with what most projects end up rebuilding: JWT login, role-based permis
 
 ## Tech stack
 
-| Part     | Stack                                                                                                            |
-| -------- | ---------------------------------------------------------------------------------------------------------------- |
-| Backend  | Go 1.22, Gin, GORM, Viper, golang-jwt, go-i18n, zap, Swaggo, Testify + GoMock                                      |
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Redux Toolkit (RTK Query), React Router, react-hook-form + yup, lucide |
-| Mobile   | React Native 0.87 (New Architecture, Hermes), React 19, TypeScript, React Navigation 7, RTK Query, Keychain      |
-| Database | SQL Server 2022 (Docker)                                                                                         |
+| Part     | Stack                                                                                                                                                                              |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend  | Go 1.22, Gin, GORM, Viper, golang-jwt, go-i18n, zap, Swaggo, Testify + GoMock                                                                                                      |
+| Frontend | React 18, TypeScript, Vite, [Rupa](https://github.com/raihanevanza/rupa) (`@rupa-ui/react`) + Tailwind CSS, Redux Toolkit (RTK Query), React Router, react-hook-form + yup, lucide |
+| Mobile   | React Native 0.87 (New Architecture, Hermes), React 19, TypeScript, Rupa (`@rupa-ui/react-native`), React Navigation 7, RTK Query, Keychain                                        |
+| Database | SQL Server 2022 (Docker)                                                                                                                                                           |
 
 ## Project layout
 
@@ -84,10 +84,10 @@ npm run android              # Android emulator, API at 10.0.2.2:8080
 
 Dev accounts (password `Password123!`):
 
-| Email               | Role  | Can                            |
-| ------------------- | ----- | ------------------------------ |
+| Email               | Role  | Can                                |
+| ------------------- | ----- | ---------------------------------- |
 | `admin@example.com` | ADMIN | read + create/edit/delete products |
-| `staff@example.com` | STAFF | read only                      |
+| `staff@example.com` | STAFF | read only                          |
 
 ## Starting a new project from this template
 

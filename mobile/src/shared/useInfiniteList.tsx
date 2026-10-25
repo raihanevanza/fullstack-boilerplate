@@ -1,7 +1,7 @@
+import {Spinner} from '@rupa-ui/react-native';
 import React, {useCallback, useMemo, useState} from 'react';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {Paginated} from '@/core/api/types';
-import {useTheme} from '@/core/theme/useTheme';
 
 // The part of a useXxxInfiniteQuery (RTK Query) result that paginated lists need
 interface InfiniteResult<T> {
@@ -17,7 +17,6 @@ interface InfiniteResult<T> {
 
 // Consistent list behavior: merged pages, pull-to-refresh, load next page, loading footer
 export function useInfiniteList<T>(result: InfiniteResult<T>) {
-  const {colors} = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const {data, hasNextPage, isFetchingNextPage, fetchNextPage, refetch} =
     result;
@@ -44,7 +43,7 @@ export function useInfiniteList<T>(result: InfiniteResult<T>) {
 
   const footer = isFetchingNextPage ? (
     <View style={styles.footer}>
-      <ActivityIndicator color={colors.accent} />
+      <Spinner label={null} />
     </View>
   ) : undefined;
 

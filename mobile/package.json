@@ -16,6 +16,8 @@
     "@react-navigation/native": "^7.5.0",
     "@react-navigation/native-stack": "^7.20.0",
     "@reduxjs/toolkit": "^2.13.0",
+    "@rupa-ui/react-native": "^0.3.0",
+    "@rupa-ui/tokens": "^0.3.0",
     "lucide-react-native": "^0.544.0",
     "react": "19.2.3",
     "react-native": "0.87.1",

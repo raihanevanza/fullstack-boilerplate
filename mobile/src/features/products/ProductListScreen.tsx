@@ -1,3 +1,4 @@
+import {Alert, Button, Segmented, useTheme} from '@rupa-ui/react-native';
 import {Plus} from 'lucide-react-native';
 import React, {useEffect, useState} from 'react';
 import {FlatList, RefreshControl, StyleSheet, View} from 'react-native';
@@ -5,24 +6,22 @@ import type {TabScreenProps} from '@/app/navigation/types';
 import {useProductsInfiniteQuery} from '@/core/api/api';
 import {useCan} from '@/core/auth/useCan';
 import {useT} from '@/core/i18n/useT';
-import {useTheme} from '@/core/theme/useTheme';
-import {Banner} from '@/shared/Banner';
-import {Button} from '@/shared/Button';
 import {ListState} from '@/shared/ListState';
 import {PageHeader} from '@/shared/PageHeader';
 import {Screen} from '@/shared/Screen';
 import {SearchBar} from '@/shared/SearchBar';
-import {Segmented} from '@/shared/Segmented';
 import {useInfiniteList} from '@/shared/useInfiniteList';
 import {ProductRow} from './ProductRow';
 
 type Filter = 'all' | 'active';
 
+const addIcon = (color: string) => <Plus size={16} color={color} />;
+
 export function ProductListScreen({
   navigation,
   route,
 }: TabScreenProps<'Products'>) {
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const canWrite = useCan('product.write');
   const [filter, setFilter] = useState<Filter>('all');
@@ -45,22 +44,25 @@ export function ProductListScreen({
     <View>
       <PageHeader
         title={t('products.title')}
-        subtitle={t('products.subtitle')}
-        right={
+        description={t('products.subtitle')}
+        actions={
           canWrite ? (
             <Button
-              label={t('products.add')}
-              icon={<Plus size={18} color="#FFFFFF" />}
+              variant="primary"
+              size="sm"
+              iconStart={addIcon}
               onPress={() => navigation.navigate('ProductForm')}
-              style={styles.addButton}
-            />
+            >
+              {t('products.add')}
+            </Button>
           ) : undefined
         }
       />
       <View style={styles.filters}>
         <SearchBar placeholder={t('products.search')} onSearch={setSearch} />
         <Segmented<Filter>
-          accessibilityLabel={t('products.filter')}
+          label={t('products.filter')}
+          block
           value={filter}
           onChange={setFilter}
           options={[
@@ -68,7 +70,9 @@ export function ProductListScreen({
             {value: 'active', label: t('products.filterActive')},
           ]}
         />
-        {list.stale ? <Banner message={t('common.staleData')} /> : null}
+        {list.stale ? (
+          <Alert tone="warning">{t('common.staleData')}</Alert>
+        ) : null}
       </View>
     </View>
   );
@@ -84,8 +88,8 @@ export function ProductListScreen({
           <RefreshControl
             refreshing={list.refreshing}
             onRefresh={list.onRefresh}
-            colors={[colors.accent]}
-            tintColor={colors.accent}
+            colors={[palette.accent]}
+            tintColor={palette.accent}
           />
         }
         onEndReached={list.onEndReached}
@@ -127,5 +131,4 @@ const styles = StyleSheet.create({
   filters: {gap: 12, paddingHorizontal: 16, paddingBottom: 16},
   padded: {paddingHorizontal: 16},
   separator: {height: 12},
-  addButton: {minHeight: 40, paddingHorizontal: 14},
 });

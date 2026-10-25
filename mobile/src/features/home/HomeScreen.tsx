@@ -1,4 +1,11 @@
 import {
+  Alert,
+  Badge,
+  Card,
+  useTheme,
+  type BadgeTone,
+} from '@rupa-ui/react-native';
+import {
   CircleCheck,
   type LucideIcon,
   Package,
@@ -19,20 +26,16 @@ import {useDashboardQuery} from '@/core/api/api';
 import type {Dashboard, Product} from '@/core/api/types';
 import {useFormat} from '@/core/format/useFormat';
 import {useT} from '@/core/i18n/useT';
-import type {Tone} from '@/core/theme/colors';
-import {useTheme} from '@/core/theme/useTheme';
 import {isLowStock} from '@/features/products/productForm';
 import {AppText} from '@/shared/AppText';
-import {Badge} from '@/shared/Badge';
-import {Banner} from '@/shared/Banner';
-import {Card} from '@/shared/Card';
 import {ListState} from '@/shared/ListState';
 import {PageHeader} from '@/shared/PageHeader';
+import {PressableCard} from '@/shared/PressableCard';
 import {Screen} from '@/shared/Screen';
 import {DonutChart} from './DonutChart';
 
 export function HomeScreen({navigation}: TabScreenProps<'Home'>) {
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const f = useFormat();
   const user = useAppSelector(state => state.session.user);
@@ -59,20 +62,20 @@ export function HomeScreen({navigation}: TabScreenProps<'Home'>) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.accent]}
-            tintColor={colors.accent}
+            colors={[palette.accent]}
+            tintColor={palette.accent}
           />
         }
       >
         <PageHeader
           title={t('home.title')}
-          subtitle={t('home.welcome', {name: user?.full_name ?? ''})}
+          description={t('home.welcome', {name: user?.full_name ?? ''})}
         />
         <View style={styles.body}>
           <View
             style={[
               styles.datePill,
-              {backgroundColor: colors.surface, borderColor: colors.line},
+              {backgroundColor: palette.surface, borderColor: palette.line},
             ]}
           >
             <AppText variant="label" color="ink2">
@@ -84,12 +87,14 @@ export function HomeScreen({navigation}: TabScreenProps<'Home'>) {
             <ListState loading={isLoading} error={error} onRetry={refetch} />
           ) : (
             <>
-              {error ? <Banner message={t('common.staleData')} /> : null}
+              {error ? (
+                <Alert tone="warning">{t('common.staleData')}</Alert>
+              ) : null}
 
               <View style={styles.grid}>
                 <StatTile
                   icon={Package}
-                  tone="brand"
+                  tone="accent"
                   label={t('home.totalProducts')}
                   value={f.number(data.total_products)}
                   caption={t('home.totalProductsHint', {
@@ -165,7 +170,7 @@ export function HomeScreen({navigation}: TabScreenProps<'Home'>) {
 
 // Every product falls in exactly one slice, so the slices add up to total_products
 function StatusCard({data}: {data: Dashboard}) {
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const f = useFormat();
 
@@ -174,24 +179,24 @@ function StatusCard({data}: {data: Dashboard}) {
       {
         label: t('home.inStock'),
         value: Math.max(0, data.active_products - data.low_stock_products),
-        color: colors.series[0],
+        color: palette.series[0],
       },
       {
         label: t('home.lowStockSlice'),
         value: data.low_stock_products,
-        color: colors.series[2],
+        color: palette.series[2],
       },
       {
         label: t('home.inactive'),
         value: data.inactive_products,
-        color: colors.seriesOther,
+        color: palette.seriesOther,
       },
     ],
-    [data, colors, t],
+    [data, palette, t],
   );
 
   return (
-    <Card title={t('home.statusTitle')} subtitle={t('home.statusSubtitle')}>
+    <Card title={t('home.statusTitle')} description={t('home.statusSubtitle')}>
       {data.total_products ? (
         <DonutChart
           slices={slices}
@@ -213,7 +218,7 @@ function RecentRow({
   product: Product;
   onPress: () => void;
 }) {
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t} = useT();
   const f = useFormat();
   const low = isLowStock(product);
@@ -227,7 +232,7 @@ function RecentRow({
       onPress={onPress}
       style={({pressed}) => [
         styles.recentRow,
-        pressed && {backgroundColor: colors.surface3},
+        pressed && {backgroundColor: palette.surface3},
       ]}
     >
       <View style={styles.flex}>
@@ -243,9 +248,13 @@ function RecentRow({
           {f.currency(product.price)}
         </AppText>
         {!product.is_active ? (
-          <Badge label={t('products.inactive')} tone="neutral" />
+          <Badge tone="neutral" dot size="sm">
+            {t('products.inactive')}
+          </Badge>
         ) : low ? (
-          <Badge label={t('products.lowStock')} tone="warning" />
+          <Badge tone="warning" dot size="sm">
+            {t('products.lowStock')}
+          </Badge>
         ) : null}
       </View>
     </Pressable>
@@ -254,14 +263,28 @@ function RecentRow({
 
 interface StatTileProps {
   icon: LucideIcon;
-  tone: Tone;
+  tone: BadgeTone;
   label: string;
   value: string;
   caption: string;
   onPress?: () => void;
 }
 
-// Same as the web StatTile: icon in a ringed square next to the label, big value, small caption
+// Icon tile colors per tone, from the Rupa palette
+const tileColors = (
+  p: ReturnType<typeof useTheme>['palette'],
+  tone: BadgeTone,
+) =>
+  ({
+    neutral: {bg: p.surface3, fg: p.ink2},
+    accent: {bg: p.accentSoft, fg: p.accent},
+    info: {bg: p.infoSoft, fg: p.infoInk},
+    success: {bg: p.successSoft, fg: p.successInk},
+    warning: {bg: p.warningSoft, fg: p.warningInk},
+    danger: {bg: p.dangerSoft, fg: p.dangerInk},
+  }[tone]);
+
+// Same as the web StatTile: icon in a tinted square next to the label, big value, small caption
 function StatTile({
   icon: Icon,
   tone,
@@ -270,21 +293,17 @@ function StatTile({
   caption,
   onPress,
 }: StatTileProps) {
-  const {tones} = useTheme();
-  const c = tones[tone];
+  const {palette} = useTheme();
+  const c = tileColors(palette, tone);
   return (
-    <Card
+    <PressableCard
       style={styles.tile}
+      padding="sm"
       onPress={onPress}
       accessibilityLabel={`${label}: ${value}`}
     >
       <View style={styles.tileHead}>
-        <View
-          style={[
-            styles.tileIcon,
-            {backgroundColor: c.bg, borderColor: c.border},
-          ]}
-        >
+        <View style={[styles.tileIcon, {backgroundColor: c.bg}]}>
           <Icon size={17} color={c.fg} />
         </View>
         <AppText
@@ -296,19 +315,15 @@ function StatTile({
           {label}
         </AppText>
       </View>
-      <AppText
-        variant="hero"
-        numeric
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        style={styles.tileValue}
-      >
-        {value}
-      </AppText>
-      <AppText variant="caption" color="ink3" numberOfLines={2}>
-        {caption}
-      </AppText>
-    </Card>
+      <View style={styles.tileBody}>
+        <AppText variant="hero" numeric numberOfLines={1} adjustsFontSizeToFit>
+          {value}
+        </AppText>
+        <AppText variant="caption" color="ink3" numberOfLines={2}>
+          {caption}
+        </AppText>
+      </View>
+    </PressableCard>
   );
 }
 
@@ -325,17 +340,16 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   grid: {flexDirection: 'row', flexWrap: 'wrap', gap: 12},
-  tile: {flexBasis: '46%', flexGrow: 1, padding: 16},
+  tile: {flexBasis: '46%', flexGrow: 1},
   tileHead: {flexDirection: 'row', alignItems: 'center', gap: 10},
   tileIcon: {
     width: 36,
     height: 36,
     borderRadius: 12,
-    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tileValue: {marginTop: 14, marginBottom: 6},
+  tileBody: {gap: 4},
   recent: {gap: 2, marginHorizontal: -8},
   recentRow: {
     flexDirection: 'row',

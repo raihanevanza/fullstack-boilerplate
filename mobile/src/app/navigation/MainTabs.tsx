@@ -1,9 +1,8 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {useTheme} from '@rupa-ui/react-native';
 import {House, Package, UserRound} from 'lucide-react-native';
 import React from 'react';
 import {useT} from '@/core/i18n/useT';
-import {font} from '@/core/theme/typography';
-import {useTheme} from '@/core/theme/useTheme';
 import {HomeScreen} from '@/features/home/HomeScreen';
 import {ProductListScreen} from '@/features/products/ProductListScreen';
 import {ProfileScreen} from '@/features/profile/ProfileScreen';
@@ -19,21 +18,21 @@ const ProductsIcon = icon(Package);
 const ProfileIcon = icon(UserRound);
 
 export function MainTabs() {
-  const {colors} = useTheme();
+  const {palette, font} = useTheme();
   const {t} = useT();
 
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.ink3,
+        tabBarActiveTintColor: palette.accent,
+        tabBarInactiveTintColor: palette.ink3,
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.line,
+          backgroundColor: palette.surface,
+          borderTopColor: palette.line,
         },
         tabBarLabelStyle: {...font('semibold'), fontSize: 11},
-        sceneStyle: {backgroundColor: colors.canvas},
+        sceneStyle: {backgroundColor: palette.canvas},
       }}
     >
       <Tab.Screen

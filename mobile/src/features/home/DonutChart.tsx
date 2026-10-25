@@ -1,7 +1,7 @@
+import {useTheme} from '@rupa-ui/react-native';
 import React, {useState} from 'react';
 import {Pressable, StyleSheet, View} from 'react-native';
 import Svg, {Circle, Path} from 'react-native-svg';
-import {useTheme} from '@/core/theme/useTheme';
 import {AppText} from '@/shared/AppText';
 
 export interface DonutSlice {
@@ -49,7 +49,7 @@ export function DonutChart({
   centerLabel,
   size = 172,
 }: Props) {
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const [active, setActive] = useState<number | null>(null);
   const total = slices.reduce((s, x) => s + x.value, 0);
   const cx = size / 2;
@@ -85,7 +85,7 @@ export function DonutChart({
               cy={cy}
               r={(r0 + r1) / 2}
               fill="none"
-              stroke={colors.chartGrid}
+              stroke={palette.chartGrid}
               strokeWidth={r1 - r0}
             />
           ) : (
@@ -94,7 +94,7 @@ export function DonutChart({
                 key={a.label}
                 d={arcPath(cx, cy, r0, r1, a.a0, a.a1)}
                 fill={a.color}
-                stroke={colors.surface}
+                stroke={palette.surface}
                 strokeWidth={2}
                 opacity={active !== null && active !== i ? 0.4 : 1}
                 onPress={() => toggle(i)}
@@ -132,7 +132,7 @@ export function DonutChart({
             )})`}
             style={[
               styles.row,
-              active === i && {backgroundColor: colors.surface3},
+              active === i && {backgroundColor: palette.surface3},
             ]}
           >
             <View style={[styles.swatch, {backgroundColor: s.color}]} />

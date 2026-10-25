@@ -1,3 +1,4 @@
+import {useTheme} from '@rupa-ui/react-native';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import Svg, {Defs, G, LinearGradient, Path, Rect, Stop} from 'react-native-svg';
@@ -7,14 +8,15 @@ import {AppText} from './AppText';
 // App name shown next to the mark. Replace it (and the mark) when you fork the boilerplate.
 export const APP_NAME = 'Boilerplate';
 
-// Violet gradient tile with a white box outline
+// Brand gradient tile (Rupa primary) with a box outline
 export function LogoMark({size = 36, glass}: {size?: number; glass?: boolean}) {
+  const {palette} = useTheme();
   return (
     <Svg width={size} height={size} viewBox="0 0 36 36">
       <Defs>
         <LinearGradient id="logo" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#8468E8" />
-          <Stop offset="1" stopColor="#5835BE" />
+          <Stop offset="0" stopColor={palette.primary} />
+          <Stop offset="1" stopColor={palette.primaryHover} />
         </LinearGradient>
       </Defs>
       <Rect
@@ -29,7 +31,7 @@ export function LogoMark({size = 36, glass}: {size?: number; glass?: boolean}) {
       <G
         transform="translate(8 8) scale(0.8333)"
         fill="none"
-        stroke="#fff"
+        stroke={palette.onPrimary}
         strokeWidth={2.4}
         strokeLinecap="round"
         strokeLinejoin="round"

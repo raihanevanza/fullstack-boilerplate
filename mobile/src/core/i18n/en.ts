@@ -15,6 +15,8 @@ export const en = {
   'common.timeout': 'The server took too long to respond',
   'common.staleData': 'Refresh failed. The data shown may be out of date.',
   'common.language': 'Language',
+  'common.required': 'required',
+  'common.failed': 'Failed',
 
   // Navigation
   'nav.home': 'Home',

@@ -1,3 +1,13 @@
+import {
+  Alert,
+  Badge,
+  Button,
+  Segmented,
+  TextField,
+  useTheme,
+  type BadgeTone,
+  type TextFieldRef,
+} from '@rupa-ui/react-native';
 import React, {useRef, useState} from 'react';
 import {
   KeyboardAvoidingView,
@@ -6,7 +16,6 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -20,17 +29,9 @@ import {noticeCleared} from '@/core/auth/sessionSlice';
 import {LANG_OPTIONS, type Lang, type TKey} from '@/core/i18n/core';
 import {useT} from '@/core/i18n/useT';
 import {setLang} from '@/core/prefs/prefsSlice';
-import type {Tone} from '@/core/theme/colors';
-import {font} from '@/core/theme/typography';
-import {useTheme} from '@/core/theme/useTheme';
 import {AppText} from '@/shared/AppText';
-import {Badge} from '@/shared/Badge';
-import {Banner} from '@/shared/Banner';
-import {Button} from '@/shared/Button';
-import {Card} from '@/shared/Card';
 import {Logo} from '@/shared/Logo';
-import {Segmented} from '@/shared/Segmented';
-import {TextField} from '@/shared/TextField';
+import {PressableCard} from '@/shared/PressableCard';
 
 // Dev accounts seeded by db/init/02_seed_dev.sql (same as the web app).
 // Only shown when env.showDemoAccounts is true, i.e. never in production builds.
@@ -39,13 +40,13 @@ const DEMO_ACCOUNTS: {
   email: string;
   role: TKey;
   access: TKey;
-  tone: Tone;
+  tone: BadgeTone;
 }[] = [
   {
     email: 'admin@example.com',
     role: 'login.role.admin',
     access: 'login.access.admin',
-    tone: 'violet',
+    tone: 'accent',
   },
   {
     email: 'staff@example.com',
@@ -58,7 +59,7 @@ const DEMO_ACCOUNTS: {
 export function LoginScreen() {
   const dispatch = useAppDispatch();
   const notice = useAppSelector(state => state.session.notice);
-  const {colors} = useTheme();
+  const {palette} = useTheme();
   const {t, lang} = useT();
   const insets = useSafeAreaInsets();
 
@@ -70,7 +71,7 @@ export function LoginScreen() {
   }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const passwordRef = useRef<React.ComponentRef<typeof TextInput>>(null);
+  const passwordRef = useRef<TextFieldRef>(null);
   // Hero size for the SVG gradient background (percentages are unreliable inside absoluteFill)
   const [hero, setHero] = useState({width: 0, height: 0});
 
@@ -115,7 +116,7 @@ export function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, {backgroundColor: colors.canvas}]}
+      style={[styles.flex, {backgroundColor: palette.canvas}]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar barStyle="light-content" />
@@ -128,7 +129,10 @@ export function LoginScreen() {
       >
         {/* Hero, like the left panel of the web login page */}
         <View
-          style={[styles.hero, {paddingTop: insets.top + 16}]}
+          style={[
+            styles.hero,
+            {paddingTop: insets.top + 16, backgroundColor: palette.primary},
+          ]}
           onLayout={e =>
             setHero({
               width: e.nativeEvent.layout.width,
@@ -144,9 +148,8 @@ export function LoginScreen() {
             >
               <Defs>
                 <LinearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
-                  <Stop offset="0" stopColor="#2A1A5E" />
-                  <Stop offset="0.55" stopColor="#4B2FB0" />
-                  <Stop offset="1" stopColor="#6E4FE0" />
+                  <Stop offset="0" stopColor={palette.primaryHover} />
+                  <Stop offset="1" stopColor={palette.primary} />
                 </LinearGradient>
               </Defs>
               <Rect width={hero.width} height={hero.height} fill="url(#hero)" />
@@ -156,7 +159,9 @@ export function LoginScreen() {
             <Logo onDark />
             <View style={styles.lang}>
               <Segmented<Lang>
-                accessibilityLabel={t('common.language')}
+                label={t('common.language')}
+                size="sm"
+                block
                 value={lang}
                 onChange={value => dispatch(setLang(value))}
                 options={LANG_OPTIONS}
@@ -171,7 +176,7 @@ export function LoginScreen() {
           </AppText>
         </View>
 
-        <View style={[styles.panel, {backgroundColor: colors.canvas}]}>
+        <View style={[styles.panel, {backgroundColor: palette.canvas}]}>
           <View>
             <AppText variant="display">{t('login.title')}</AppText>
             <AppText color="ink3" style={styles.subtitle}>
@@ -179,7 +184,11 @@ export function LoginScreen() {
             </AppText>
           </View>
 
-          {banner ? <Banner message={banner} tone="danger" /> : null}
+          {banner ? (
+            <Alert tone="danger" live>
+              {banner}
+            </Alert>
+          ) : null}
 
           <TextField
             label={t('login.email')}
@@ -193,7 +202,7 @@ export function LoginScreen() {
             textContentType="username"
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
-            editable={!submitting}
+            disabled={submitting}
           />
           <TextField
             ref={passwordRef}
@@ -207,48 +216,46 @@ export function LoginScreen() {
             textContentType="password"
             returnKeyType="go"
             onSubmitEditing={submit}
-            editable={!submitting}
+            disabled={submitting}
           />
-          <Button
-            label={t('login.submit')}
-            onPress={submit}
-            loading={submitting}
-          />
+          <Button variant="primary" block onPress={submit} loading={submitting}>
+            {t('login.submit')}
+          </Button>
 
           {env.showDemoAccounts ? (
             <View style={styles.demo}>
               <View style={styles.dividerRow}>
-                <View style={[styles.rule, {backgroundColor: colors.line}]} />
+                <View style={[styles.rule, {backgroundColor: palette.line}]} />
                 <AppText variant="caption" color="ink3" weight="semibold">
                   {t('login.demoTitle')}
                 </AppText>
-                <View style={[styles.rule, {backgroundColor: colors.line}]} />
+                <View style={[styles.rule, {backgroundColor: palette.line}]} />
               </View>
               <View style={styles.demoGrid}>
                 {DEMO_ACCOUNTS.map(acc => (
-                  <Card
+                  <PressableCard
                     key={acc.email}
+                    padding="sm"
                     style={styles.demoCard}
                     onPress={() => fillDemo(acc.email)}
                     accessibilityLabel={`${t(acc.role)}: ${acc.email}`}
                   >
-                    <Badge label={t(acc.role)} tone={acc.tone} dot={false} />
-                    <AppText
-                      weight="semibold"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      style={styles.demoEmail}
-                    >
-                      {acc.email}
-                    </AppText>
-                    <AppText
-                      variant="caption"
-                      color="ink2"
-                      style={styles.demoAccess}
-                    >
-                      {t(acc.access)}
-                    </AppText>
-                  </Card>
+                    <View style={styles.demoBody}>
+                      <Badge tone={acc.tone} size="sm" style={styles.demoBadge}>
+                        {t(acc.role)}
+                      </Badge>
+                      <AppText
+                        weight="semibold"
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {acc.email}
+                      </AppText>
+                      <AppText variant="caption" color="ink2">
+                        {t(acc.access)}
+                      </AppText>
+                    </View>
+                  </PressableCard>
                 ))}
               </View>
               <Pressable
@@ -258,7 +265,9 @@ export function LoginScreen() {
                 <AppText variant="caption" color="ink3">
                   {t('login.demoPassword')}
                 </AppText>
-                <View style={[styles.code, {backgroundColor: colors.surface3}]}>
+                <View
+                  style={[styles.code, {backgroundColor: palette.surface3}]}
+                >
                   <AppText
                     variant="caption"
                     color="ink2"
@@ -291,7 +300,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 48,
     overflow: 'hidden',
-    backgroundColor: '#4B2FB0',
   },
   heroTop: {
     flexDirection: 'row',
@@ -299,8 +307,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 28,
   },
-  lang: {width: 104},
-  heroTitle: {...font('bold'), fontSize: 28, lineHeight: 34},
+  lang: {width: 112},
+  heroTitle: {fontSize: 28, lineHeight: 34},
   heroText: {marginTop: 10, opacity: 0.8},
   panel: {
     flex: 1,
@@ -316,9 +324,9 @@ const styles = StyleSheet.create({
   dividerRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
   rule: {flex: 1, height: 1},
   demoGrid: {flexDirection: 'row', gap: 10},
-  demoCard: {flex: 1, padding: 14},
-  demoEmail: {marginTop: 8},
-  demoAccess: {marginTop: 6},
+  demoCard: {flex: 1},
+  demoBody: {gap: 6},
+  demoBadge: {alignSelf: 'flex-start', marginBottom: 2},
   demoPassword: {
     flexDirection: 'row',
     alignItems: 'center',

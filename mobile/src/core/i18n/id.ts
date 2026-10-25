@@ -18,6 +18,8 @@ export const id: Record<TKey, string> = {
   'common.staleData':
     'Gagal memperbarui. Data yang tampil mungkin bukan yang terbaru.',
   'common.language': 'Bahasa',
+  'common.required': 'wajib',
+  'common.failed': 'Gagal',
 
   // Navigation
   'nav.home': 'Beranda',

@@ -1,3 +1,12 @@
+import {
+  Badge,
+  Button,
+  Card,
+  ConfirmDialog,
+  InfoList,
+  Segmented,
+  useTheme,
+} from '@rupa-ui/react-native';
 import {Languages, LogOut, Moon} from 'lucide-react-native';
 import React, {useState} from 'react';
 import {RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
@@ -9,27 +18,21 @@ import {useFormat} from '@/core/format/useFormat';
 import {LANG_OPTIONS, type Lang} from '@/core/i18n/core';
 import {useT} from '@/core/i18n/useT';
 import {setLang, setThemeMode, type ThemeMode} from '@/core/prefs/prefsSlice';
-import {useTheme} from '@/core/theme/useTheme';
 import {AppText} from '@/shared/AppText';
-import {Badge} from '@/shared/Badge';
-import {Button} from '@/shared/Button';
-import {Card} from '@/shared/Card';
-import {ConfirmDialog} from '@/shared/ConfirmDialog';
-import {InfoList} from '@/shared/InfoList';
 import {PageHeader} from '@/shared/PageHeader';
 import {Screen} from '@/shared/Screen';
-import {Segmented} from '@/shared/Segmented';
 import {version} from '../../../package.json';
 
-// Violet gradient avatar with initials, same as the user card in the web sidebar
+// Brand gradient avatar with initials, like the user card in the web sidebar
 function Avatar({initials}: {initials: string}) {
+  const {palette} = useTheme();
   return (
     <View style={styles.avatar}>
       <Svg width={52} height={52} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="avatar" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor="#8468E8" />
-            <Stop offset="1" stopColor="#5835BE" />
+            <Stop offset="0" stopColor={palette.primary} />
+            <Stop offset="1" stopColor={palette.primaryHover} />
           </LinearGradient>
         </Defs>
         <Circle cx={26} cy={26} r={26} fill="url(#avatar)" />
@@ -45,7 +48,7 @@ export function ProfileScreen() {
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.session.user);
   const themeMode = useAppSelector(state => state.prefs.themeMode);
-  const {colors, tones} = useTheme();
+  const {palette} = useTheme();
   const {t, lang} = useT();
   const f = useFormat();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -71,7 +74,9 @@ export function ProfileScreen() {
   const permissions = user?.permissions.length ? (
     <View style={styles.badges}>
       {user.permissions.map(permission => (
-        <Badge key={permission} label={permission} tone="violet" dot={false} />
+        <Badge key={permission} tone="info" size="sm">
+          {permission}
+        </Badge>
       ))}
     </View>
   ) : (
@@ -86,8 +91,8 @@ export function ProfileScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[colors.accent]}
-            tintColor={colors.accent}
+            colors={[palette.accent]}
+            tintColor={palette.accent}
           />
         }
       >
@@ -101,15 +106,23 @@ export function ProfileScreen() {
                 <AppText color="ink3">{user?.email}</AppText>
               </View>
             </View>
-            <View style={[styles.divider, {borderTopColor: colors.line}]}>
+            <View style={[styles.divider, {borderTopColor: palette.line}]}>
               <InfoList
+                emptyValue="-"
                 items={[
-                  [
-                    t('profile.role'),
-                    user ? <Badge label={user.role_name} tone="brand" /> : '-',
-                  ],
-                  [t('profile.lastLogin'), f.dateTime(user?.last_login_at)],
-                  [t('profile.permissions'), permissions],
+                  {
+                    label: t('profile.role'),
+                    value: user ? (
+                      <Badge tone="accent" dot>
+                        {user.role_name}
+                      </Badge>
+                    ) : null,
+                  },
+                  {
+                    label: t('profile.lastLogin'),
+                    value: f.dateTime(user?.last_login_at),
+                  },
+                  {label: t('profile.permissions'), value: permissions},
                 ]}
               />
             </View>
@@ -119,13 +132,14 @@ export function ProfileScreen() {
             <View style={styles.settings}>
               <View style={styles.setting}>
                 <View style={styles.settingLabel}>
-                  <Languages size={18} color={colors.ink2} />
+                  <Languages size={18} color={palette.ink2} />
                   <AppText weight="medium" color="ink2">
                     {t('common.language')}
                   </AppText>
                 </View>
                 <Segmented<Lang>
-                  accessibilityLabel={t('common.language')}
+                  label={t('common.language')}
+                  block
                   value={lang}
                   onChange={value => dispatch(setLang(value))}
                   options={LANG_OPTIONS}
@@ -133,13 +147,14 @@ export function ProfileScreen() {
               </View>
               <View style={styles.setting}>
                 <View style={styles.settingLabel}>
-                  <Moon size={18} color={colors.ink2} />
+                  <Moon size={18} color={palette.ink2} />
                   <AppText weight="medium" color="ink2">
                     {t('profile.theme')}
                   </AppText>
                 </View>
                 <Segmented<ThemeMode>
-                  accessibilityLabel={t('profile.theme')}
+                  label={t('profile.theme')}
+                  block
                   value={themeMode}
                   onChange={value => dispatch(setThemeMode(value))}
                   options={[
@@ -155,32 +170,34 @@ export function ProfileScreen() {
           <Card title={t('profile.about')}>
             <InfoList
               items={[
-                [t('profile.version'), version],
-                [t('profile.server'), env.apiBaseUrl],
+                {label: t('profile.version'), value: version},
+                {label: t('profile.server'), value: env.apiBaseUrl},
               ]}
             />
           </Card>
 
           <Button
-            label={t('profile.logout')}
             variant="secondary"
-            icon={<LogOut size={18} color={tones.danger.fg} />}
+            block
+            iconStart={<LogOut size={18} color={palette.dangerInk} />}
             onPress={() => setLogoutOpen(true)}
-          />
+          >
+            {t('profile.logout')}
+          </Button>
         </View>
       </ScrollView>
 
       <ConfirmDialog
-        visible={logoutOpen}
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        tone="danger"
         title={t('profile.logoutConfirm')}
-        description={user?.email ?? ''}
+        description={user?.email}
         confirmLabel={t('profile.logout')}
-        confirmVariant="danger"
+        cancelLabel={t('common.cancel')}
         onConfirm={() => {
-          setLogoutOpen(false);
           dispatch(logout());
         }}
-        onCancel={() => setLogoutOpen(false)}
       />
     </Screen>
   );
@@ -197,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  divider: {borderTopWidth: 1, marginTop: 16, paddingTop: 16},
+  divider: {borderTopWidth: 1, paddingTop: 16},
   badges: {flexDirection: 'row', flexWrap: 'wrap', gap: 6},
   settings: {gap: 16},
   setting: {gap: 8},
